@@ -1,0 +1,114 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id          String   @id @default(cuid())
+  lineId      String   @unique
+  displayName String
+  avatarUrl   String?
+  xHandle     String?
+  phone       String?
+  stamps      Int      @default(0) // แต้มสะสมปัจจุบัน
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reviews     ReviewSubmission[]
+  passes      QueuePass[]
+  pointLogs   PointLog[]
+  redemptions CodeRedemption[]
+}
+
+model ReviewSubmission {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  concertName  String
+  xHandle      String
+  postUrl      String?
+  imageUrl     String?   // Base64 screenshot or direct link
+  status       String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  rejectReason String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model QueuePass {
+  id             String     @id @default(cuid())
+  code           String     @unique // e.g. LELE-FT-89A1 or LELE-RW-XXXX
+  userId         String
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promotionId    String?
+  promotion      Promotion? @relation(fields: [promotionId], references: [id], onDelete: SetNull)
+  rewardTitle    String     @default("สิทธิ์ลัดคิว") // snapshot of reward title
+  status         String     @default("ACTIVE") // ACTIVE, USED
+  usedAt         DateTime?
+  usedForConcert String?
+  createdAt      DateTime   @default(now())
+}
+
+model Promotion {
+  id          String      @id @default(cuid())
+  title       String      // e.g. "สิทธิ์ลัดคิว 1 งาน", "ส่วนลดค่ากด 50 บาท"
+  points      Int         // e.g. 3, 5, 10
+  description String?     // e.g. "ใช้ได้กับคอนเสิร์ตทุกงาน แจ้งทาง DM ก่อนวันกดบัตร"
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  passes      QueuePass[]
+}
+
+model PointLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Int      // +1 or -5
+  reason    String
+  createdAt DateTime @default(now())
+}
+
+model Admin {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  name               String   // Display name
+  avatarUrl          String?  // Cloudinary avatar URL
+  passwordHash       String
+  role               String   @default("STAFF") // DEV, OWNER, STAFF
+  mustChangePassword Boolean  @default(true) // Force change password on first login
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model SpecialCode {
+  id           String           @id @default(cuid())
+  code         String           @unique
+  rewardType   String           // "PASS" or "POINTS"
+  rewardPoints Int?             // e.g. 1, 3, 5 if rewardType === "POINTS"
+  rewardTitle  String           // e.g. "สิทธิ์ลัดคิว 1 งาน" or "แต้มสะสม 2 แต้ม"
+  maxUses      Int?             // Quota limit, null = unlimited
+  usedCount    Int              @default(0)
+  expiresAt    DateTime?        // Optional expiration date
+  isActive     Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  redemptions  CodeRedemption[]
+}
+
+model CodeRedemption {
+  id        String      @id @default(cuid())
+  codeId    String
+  code      SpecialCode @relation(fields: [codeId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  passId    String?     // If reward was a pass, links to the QueuePass ID
+  createdAt DateTime    @default(now())
+
+  @@unique([codeId, userId])
+}

@@ -1,26 +1,139 @@
 @import "tailwindcss";
+@import "react-toastify/dist/ReactToastify.css";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-cream: #F7EBC9;
+  --color-cornflower: #5284B7;
+  --color-booking-blue: #25384C;
+  --color-ink: #25384C;
+  --color-slate: #657406;
+  --color-cloud: #FAF8F2;
+  --color-paper: #FFFFFF;
+  --color-mist: #D0DEF7;
+  --color-success: #2D7058;
+  --color-success-bg: #EAF4EE;
+  --color-warning: #956018;
+  --color-warning-bg: #FCF2D9;
+  --color-error: #B01444;
+  --color-error-bg: #FBEDED;
+  --color-info: #315F91;
+  --color-info-bg: #EDF3FA;
+  --radius-sm: 8px;
+  --radius-control: 12px;
+  --radius-card: 20px;
+  --radius-pill: 9999px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.bg-brand-success {
+  background-color: #2D7058 !important;
+  color: #FFFFFF !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.bg-brand-error {
+  background-color: #B01444 !important;
+  color: #FFFFFF !important;
+}
+
+.border-brand-success {
+  border-color: #2D7058 !important;
+}
+
+.border-brand-error {
+  border-color: #B01444 !important;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-thai), "Noto Sans Thai", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--color-cloud);
+  color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a, input, textarea, select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--color-booking-blue);
+  outline-offset: 2px;
+}
+
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: none;
+}
+
+.font-latin, code, .font-mono {
+  font-family: var(--font-latin), "Nunito Sans", ui-sans-serif, sans-serif;
+}
+
+/* Custom soft gradients & glow for LELE' Ticket theme */
+.butter-card-gradient {
+  background: var(--color-cream);
+}
+
+.ticket-border {
+  border: 1.5px dashed var(--color-cornflower);
+}
+
+.vip-card-gradient {
+  background: var(--color-cornflower);
+}
+
+.toast-lele {
+  border-radius: var(--radius-control);
+  font-family: var(--font-thai), "Noto Sans Thai", sans-serif;
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .Toastify__toast-container {
+    width: calc(100vw - 32px);
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+/* Smooth micro-animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.92; transform: scale(1.03); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2.5s ease-in-out infinite;
+}
+
+/* Hide scrollbars across the application for a clean, app-like experience */
+@utility no-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  &::-webkit-scrollbar {
+    display: none !important;
+    width: 0px !important;
+    height: 0px !important;
+    background: transparent !important;
+  }
+}
+
+html, body, div, main, section, * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
 }

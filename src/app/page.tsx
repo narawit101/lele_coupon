@@ -1,69 +1,287 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useEffect, useState } from "react";
+import liff from "@/lib/liff";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
+import { MANUAL_LOGOUT_KEY } from "@/lib/auth-session";
+import { toast } from "react-toastify";
+import { UserCog, LogOut, MessageSquarePlus } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import ProfileDropdown from "@/components/ProfileDropdown";
+import {
+  UserCard,
+  ActivityFeed,
+  useUserActivities,
+  useUserPasses,
+  useUserPromotions,
+  ReviewModal,
+  PassWalletModal,
+  EditProfileModal,
+  RewardExchangeModal,
+  RedeemCodeModal,
+} from "@/components/user";
+
+export default function HomePage() {
+  const router = useRouter();
+  const { userData: user, token, isLoad, logout, refreshUserData } = useUser();
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showRedeemCodeModal, setShowRedeemCodeModal] = useState(false);
+
+  // Domain Hooks
+  const {
+    activities,
+    activityPage,
+    activityTotalPages,
+    activityTotal,
+    activityLoading,
+    activitySectionRef,
+    fetchActivities,
+    handleActivityPageChange,
+  } = useUserActivities({ token });
+
+  const {
+    userPasses,
+    passesPage,
+    passesTotalPages,
+    passesTotal,
+    passesStatus,
+    passCounts,
+    passesLoading,
+    showPassModal,
+    setShowPassModal,
+    fetchUserPasses,
+    handlePassPageChange,
+    handlePassStatusChange,
+    handleOpenPassModal,
+  } = useUserPasses({ token });
+
+  const {
+    promotions,
+    promotionsLoading,
+    showExchangeModal,
+    setShowExchangeModal,
+    loadPromotions,
+    handleRedeem,
+  } = useUserPromotions({
+    token,
+    user,
+    refreshUserData,
+    onRedeemSuccess: () => {
+      fetchActivities(1);
+      fetchUserPasses(1, passesStatus);
+    },
+  });
+
+  // Pull-to-refresh or manual refresh handler
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        refreshUserData(),
+        fetchActivities(activityPage),
+        fetchUserPasses(passesPage, passesStatus),
+        new Promise((resolve) => setTimeout(resolve, 600)),
+      ]);
+    } catch {
+      toast.error("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Auth protection guard
+  useEffect(() => {
+    if (!isLoad) return;
+    if (!token || !user) {
+      router.replace("/login");
+    }
+  }, [isLoad, token, user, router]);
+
+  useEffect(() => {
+    loadPromotions();
+  }, [loadPromotions]);
+
+  useEffect(() => {
+    if (token && user?.id) {
+      fetchActivities(activityPage);
+      fetchUserPasses(passesPage, passesStatus);
+    }
+  }, [
+    token,
+    user?.id,
+    activityPage,
+    passesPage,
+    passesStatus,
+    fetchActivities,
+    fetchUserPasses,
+  ]);
+
+  if (!isLoad || !user) {
+    return (
+      <div className="min-h-screen bg-[#FAF8F2] text-[#25384C] animate-pulse">
+        <header className="sticky top-0 z-30 bg-[#FAF8F2]/95 backdrop-blur-md border-b border-[#D0DEF7]">
+          <div className="w-full max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-full bg-[#D0DEF7]/60 shrink-0" />
+              <div className="space-y-1.5">
+                <div className="h-4 w-24 bg-[#25384C]/15 rounded" />
+                <div className="h-3 w-28 bg-[#5284B7]/20 rounded" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-full bg-[#D0DEF7]/50" />
+              <div className="w-9 h-9 rounded-full bg-[#D0DEF7]/50" />
+            </div>
+          </div>
+        </header>
+        <main className="max-w-lg mx-auto px-4 pt-4 space-y-4">
+          <div className="rounded-[20px] p-5 border border-[#D0DEF7] bg-white h-48" />
+          <div className="w-full h-11 bg-[#25384C]/15 rounded-xl" />
+          <div className="rounded-2xl p-4 border border-[#D0DEF7] bg-white h-64" />
+        </main>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="min-h-screen bg-[#FAF8F2] text-[#25384C]">
+      {/* Top Header */}
+      <Navbar
+        title="LELE' Ticket"
+        subtitle="#เลอเล่อรับกดบัตร"
+        actions={
+          <ProfileDropdown
+            name={user.displayName}
+            avatarUrl={user.avatarUrl}
+            subtitle={
+              user.xHandle ? `@${user.xHandle}` : user.phone || "สมาชิกทั่วไป"
+            }
+            title="เมนูโปรไฟล์"
+            items={[
+              {
+                id: "edit-profile",
+                label: "แก้ไขข้อมูลส่วนตัว",
+                icon: UserCog,
+                onClick: () => setShowProfileModal(true),
+              },
+              {
+                id: "logout",
+                label: "ออกจากระบบ",
+                icon: LogOut,
+                isDanger: true,
+                dividerAbove: true,
+                onClick: () => {
+                  try {
+                    if (liff.isLoggedIn()) liff.logout();
+                  } catch {
+                    // LIFF may not have been initialized
+                  }
+                  logout();
+                  sessionStorage.setItem(MANUAL_LOGOUT_KEY, "1");
+                  router.replace("/login");
+                },
+              },
+            ]}
+          />
+        }
+      />
+
+      <main className="max-w-lg mx-auto px-4 py-2 space-y-4">
+        {/* User Card */}
+        <UserCard
+          user={user}
+          isRefreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          onExchangeReward={() => setShowExchangeModal(true)}
+          onOpenPassWallet={handleOpenPassModal}
+          onRedeemCode={() => setShowRedeemCodeModal(true)}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+        {/* Primary Action Button: Send Review */}
+        <button
+          type="button"
+          onClick={() => setShowReviewModal(true)}
+          className="w-full min-h-11 px-4 bg-[#25384C] hover:bg-[#1B2938] text-white font-semibold rounded-xl shadow-lg shadow-[#25384C]/20 flex items-center justify-center gap-2 transition-all active:scale-[0.99] cursor-pointer"
+        >
+          <MessageSquarePlus className="w-4 h-4 shrink-0" />
+          <span>ส่งรีวิวขอรับแต้มสะสม</span>
+        </button>
+
+        {/* Recent Activities Section */}
+        <ActivityFeed
+          activities={activities}
+          activityLoading={activityLoading}
+          isRefreshing={isRefreshing}
+          activityTotal={activityTotal}
+          activityPage={activityPage}
+          activityTotalPages={activityTotalPages}
+          onPageChange={handleActivityPageChange}
+          containerRef={activitySectionRef}
+        />
       </main>
+
+      {/* Direct Modals Rendering */}
+      <ReviewModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        userId={user.id}
+        defaultXHandle={user.xHandle || ""}
+        onSuccess={async () => {
+          await refreshUserData();
+          fetchActivities(1);
+        }}
+      />
+
+      <PassWalletModal
+        isOpen={showPassModal}
+        onClose={() => setShowPassModal(false)}
+        passes={userPasses}
+        total={passesTotal}
+        page={passesPage}
+        totalPages={passesTotalPages}
+        status={passesStatus}
+        counts={passCounts}
+        isLoading={passesLoading}
+        onStatusChange={handlePassStatusChange}
+        onPageChange={handlePassPageChange}
+      />
+
+      <EditProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        token={token}
+        initialXHandle={user.xHandle}
+        initialPhone={user.phone}
+        currentAvatarUrl={user.avatarUrl}
+        onSuccess={refreshUserData}
+      />
+
+      <RewardExchangeModal
+        isOpen={showExchangeModal}
+        onClose={() => setShowExchangeModal(false)}
+        userStamps={user.stamps}
+        promotions={promotions}
+        isLoading={promotionsLoading}
+        onRedeem={handleRedeem}
+        onOpenMyPasses={handleOpenPassModal}
+      />
+
+      <RedeemCodeModal
+        isOpen={showRedeemCodeModal}
+        onClose={() => setShowRedeemCodeModal(false)}
+        token={token}
+        onSuccess={async () => {
+          await refreshUserData();
+          fetchActivities(1);
+          fetchUserPasses(1, passesStatus);
+        }}
+        onOpenPasses={handleOpenPassModal}
+      />
     </div>
   );
 }
