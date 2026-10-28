@@ -130,22 +130,14 @@ export default function InspectPassModal({
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#D0DEF7]/40">
+          <div className="flex items-center justify-end pt-3 border-t border-[#D0DEF7]/40">
             <button
               type="button"
               disabled={isLoading}
               onClick={() => onPassAction("REVERT")}
-              className="px-3 py-2 text-xs font-semibold rounded-lg border border-rose-300 text-rose-700 bg-rose-50/60 hover:bg-rose-100 transition cursor-pointer disabled:opacity-50"
+              className="px-3.5 py-2 text-xs font-semibold rounded-lg border border-rose-300 text-rose-700 bg-rose-50/60 hover:bg-rose-100 transition cursor-pointer disabled:opacity-50"
             >
               {isLoading ? "กำลังดำเนินการ..." : "ยกเลิกสิทธิ์"}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isLoading}
-              className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-white hover:bg-[#FAF8F2] text-slate-700 border border-[#D0DEF7] transition cursor-pointer disabled:opacity-50"
-            >
-              ปิด
             </button>
           </div>
         )}

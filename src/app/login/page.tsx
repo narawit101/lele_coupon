@@ -21,7 +21,7 @@ export default function Login() {
     sessionStorage.removeItem(MANUAL_LOGOUT_KEY);
     setLoading(true);
     setErrorMessage(null);
-    setStatusMessage("กำลังดึงข้อมูล LINE...");
+    setStatusMessage("กำลังโหลดข้อมูล");
 
     try {
       if (!liff.isLoggedIn()) {
@@ -45,7 +45,7 @@ export default function Login() {
         return;
       }
 
-      setStatusMessage("กำลังเข้าสู่ระบบ...");
+      setStatusMessage("กำลังเข้าสู่ระบบ");
       const res = await fetch(`${API_URL}/auth/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -97,20 +97,22 @@ Intentional, minimal design that avoids visual clutter and redundant decorations
 - **Browser Tab & Favicon**:
   - Unified title: `LELE' Ticket - #เลอเล่อรับกดบัตร`.
   - Circular favicon & app icon rendered natively via App Router (`src/app/icon.png` & `src/app/favicon.ico`).
-- **Quick X Store Action**: Circular X icon button (`36×36px`, `rounded-full border border-[#D0DEF7] bg-white`) linking directly to `@lele0423_ticket` (`https://x.com/lele0423_ticket`) for 1-tap navigation, removing redundant links from profile dropdowns.
+- **Quick X Store Action**: Circular X icon button (`36×36px`, `rounded-full border border-[#D0DEF7] bg-white`) linking dynamically to the store X profile configured in `siteConfig.ts` (`NEXT_PUBLIC_SHOP_X_HANDLE`, default: `@lele0423_ticket`) for 1-tap navigation, removing redundant links from profile dropdowns.
 
 ### 2. No Decorative Icons Policy
 - **Strict Rule**: Never add decorative icons or emojis (e.g. `Camera`, `CheckCircle2`, `Clock`, `XCircle`, `PlusCircle`, `Send`, `Sparkles`, `📌`) to buttons, form fields, helper banners, or status badges.
 - Rely on strong typographical contrast, intentional spacing, and curated brand colors.
-- Icons are strictly restricted to necessary navigation controls (e.g., modal dismiss `✕`, pagination chevrons) and explicit functional triggers (`MessageSquarePlus` for adding review).
+- Icons are strictly restricted to necessary navigation controls (e.g., modal dismiss `✕`, pagination chevrons) and explicit functional triggers (`MessageSquarePlus` for adding review, `RectangleEllipsis` for entering codes).
 
 ### 3. Point Ledger & Badge Typography
 - Point adjustments (`+1 point`, `-1 point`) must be rendered as clean, high-contrast typography (`text-sm font-bold font-latin`).
-- **User Modals**: Render badges as clean, borderless colored text (`text-[#2D7058]`, `text-[#657406]`) without candy pill background rectangles.
+- **User Modals & Reward Cards**: Render badges and point values as clean, unpill'd typography without candy pill background rectangles. In `RewardExchangeModal`, point costs are made prominent and legible via enlarged bold numerals (`text-base font-extrabold font-latin text-[#25384C]` for available redemptions, and `text-sm font-extrabold font-latin text-[#B01444]` for shortfall points) while keeping surrounding Thai descriptor text subtle (`text-xs text-slate-500`).
+- **User Passes Wallet**: Statuses are displayed as clean, borderless colored text (`text-[#2D7058]` for Active, `text-slate-400` for Used).
 - **Admin Tables**: Use subtle semantic pills (`text-[#956018] bg-[#FCF2D9]`, `text-[#2D7058] bg-[#EAF4EE]`, `text-[#B01444] bg-[#FBEDED]`).
 
-### 4. Admin Search & Filtering (`AdminFilterBar`)
-- **Debounced Input**: Built-in 300ms debounce to prevent constant refetching during rapid typing.
+### 4. Admin Data Tables & Search (`AdminDataTable` & `AdminFilterBar`)
+- **Unified Tabular Surface (`AdminDataTable`)**: Consistent table chassis across 100% of admin tabs (`ReviewsTab`, `PassesTab`, `PromotionsTab`, `MembersTab`) with clean borders (`border-[#D0DEF7]`), pulse loading skeleton rows, empty state messaging, subtle sorting chevrons, and built-in bottom pagination.
+- **Debounced Input**: Built-in 300ms debounce in `AdminFilterBar` to prevent constant refetching during rapid typing.
 - **Loading State**: Displays an inline animated spinner inside the search icon space during active network queries.
 - **Clear Button**: Subtle `✕` button appears when query text exists, providing immediate clearing in a single click.
 - **No Table Flickering**: Tables maintain stable opacity during live search queries to ensure smooth visual ergonomics.

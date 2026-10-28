@@ -126,7 +126,7 @@ export default function UserCard({
           onClick={onRedeemCode}
           className="w-full min-h-10.5 px-1.5 sm:px-2.5 py-2 text-[11px] sm:text-xs font-semibold rounded-[10px] bg-[#FAF8F2] hover:bg-[#D0DEF7]/40 text-[#25384C] border border-[#D0DEF7] transition cursor-pointer shadow-2xs active:scale-95 flex items-center justify-center gap-1 sm:gap-1.5"
         >
-          <RectangleEllipsis className="w-3.5 h-3.5 shrink-0" />
+          <RectangleEllipsis className="w-4 h-4 shrink-0" />
           <span className="truncate">กรอกโค้ด</span>
         </button>
       </div>

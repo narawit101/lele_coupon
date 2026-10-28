@@ -204,14 +204,14 @@ export default function EditProfileModal({
             type="button"
             disabled={savingProfile}
             onClick={handleClose}
-            className="flex-1 min-h-12 text-sm font-semibold rounded-xl bg-[#FAF8F2] hover:bg-[#D0DEF7] cursor-pointer disabled:opacity-50"
+            className="flex-1 min-h-12 text-sm font-semibold rounded-xl bg-white hover:bg-[#FAF8F2] text-slate-700 border border-[#D0DEF7] transition cursor-pointer disabled:opacity-50"
           >
             ยกเลิก
           </button>
           <button
             type="submit"
             disabled={savingProfile}
-            className="flex-1 min-h-12 text-sm font-semibold rounded-xl bg-[#25384C] text-white hover:bg-[#1B2938] cursor-pointer disabled:opacity-50"
+            className="flex-1 min-h-12 text-sm font-semibold rounded-xl bg-[#25384C] text-white hover:bg-[#1B2938] transition cursor-pointer disabled:opacity-50"
           >
             {savingProfile ? "กำลังบันทึก..." : "บันทึก"}
           </button>

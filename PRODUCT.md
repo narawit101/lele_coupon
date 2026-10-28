@@ -18,29 +18,32 @@ Unlike generic loyalty apps or manual spreadsheet trackers, LELE' Ticket directl
 
 ## Operating Context
 - **Mobile First (LINE LIFF)**: Customers operate primarily within the LINE mobile in-app browser environment with touch-first interactions.
-- **X (Twitter) Concierge Workflow**: Ticket booking requests and pass code validation happen via direct messages (DM) with `@lele0423_ticket` during high-pressure ticket drop windows.
+- **X (Twitter) Concierge Workflow**: Ticket booking requests and pass code validation happen via direct messages (DM) with the shop concierge account (configured via `NEXT_PUBLIC_SHOP_X_HANDLE`, default `@lele0423_ticket`) during high-pressure ticket drop windows.
 - **Admin Review Verification**: Staff review screenshots and tweet URLs via `/admin`, approving or rejecting submissions with atomic database ledger entries.
 
 ## Capabilities and Constraints
 - **Capabilities**:
-  - Frictionless LINE LIFF single sign-on with automatic profile synchronization.
+  - Frictionless LINE LIFF single sign-on with resilient singleton initialization (`initLiff`) and automatic OAuth URL parameter cleanup preventing token exchange errors.
   - Digital member card displaying live stamp/point balances.
-  - Interactive reward exchange catalog with client-side pagination.
+  - Interactive reward exchange catalog with client-side pagination and prominent, unpill'd point cost typography (`text-base font-extrabold`).
   - Server-paginated queue pass wallet with status filters (`ALL`, `ACTIVE`, `USED`) and direct DM links.
   - Special campaign code redemption modal for instantaneous bonus point credits.
   - Mobile-native photo picker for review evidence submissions.
   - FinTech-grade point activity ledger without visual slop or duplicate approved entries.
   - Administrative portal with forced password rotation, review verification, pass invalidation, special codes management, and manual point adjustments.
+  - Standardized tabular UI (`AdminDataTable<T>`) across 100% of admin views (`ReviewsTab`, `PassesTab`, `PromotionsTab`, `MembersTab`) with typed `ColumnDef`, animated skeleton loading, sorting chevrons, and built-in pagination.
+  - Centralized admin API client (`adminFetch`) automatically managing session tokens and error handling.
   - Clean sub-tab architecture for Admin: Passes (`[ คูปองรางวัล ]` & `[ ประวัติใช้โค้ดพิเศษ ]`) and Promotions (`[ รายการโปรโมชั่น ]` & `[ โค้ดพิเศษ ]`).
   - Flexible admin account provisioning: Option to issue default temporary passwords (with forced rotation) or set custom secure passwords immediately with `PasswordCriteriaChecklist`.
   - Ergonomic search bar (`AdminFilterBar`) across all tables with 300ms debounce, loading indicator, and instant clear button.
+  - Centralized brand social identities (`siteConfig.ts`) dynamically populating direct navigation and concierge links.
 - **Constraints**:
   - Strict compliance with `AGENTS.md` and `DESIGN.md`.
   - Zero AI slop: minimal, clean, intentional code.
   - No decorative icons or emojis in buttons, badges, helper alerts, or cards.
   - FinTech point typography (+1 points, -1 points) without candy pill badges.
   - Reversible actions with atomic transactions (`prisma.$transaction()`).
-  - Thai Buddhist era timezone formatting via `formatThaiDateTime()`.
+  - Native zero-dependency Thai Buddhist era timezone formatting via `formatThaiDateTime()` using `Intl.DateTimeFormat`.
 
 ## Brand Commitments
 - **Name**: LELE' Ticket (#เลอเล่อรับกดบัตร)

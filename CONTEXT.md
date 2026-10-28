@@ -16,11 +16,13 @@ LELE' Ticket is a digital loyalty rewards, social review verification, and fast-
 - **Framework**: Next.js (App Router, React 19, TypeScript)
 - **Database & ORM**: PostgreSQL managed through Prisma ORM (`@prisma/client`)
 - **Authentication**:
-  - **Customer Portal**: LINE Front-end Framework (LIFF) SDK (`@line/liff`) + Customer JWT Bearer tokens
+  - **Customer Portal**: LINE Front-end Framework (LIFF) SDK (`@line/liff`) via singleton `initLiff` in `src/lib/liff.ts` with automatic URL query cleanup (`window.history.replaceState` stripping `code`, `state`, `liffClientId`) preventing duplicate token exchange errors + Customer JWT Bearer tokens
   - **Admin Dashboard**: Multi-tier role-based session JWT (`x-admin-token`), cross-tab synchronized `localStorage`, bcrypt password hashing, and enforced first-time password rotation
+- **API Client & Networking**: Centralized `adminFetch` in `src/lib/adminApi.ts` automatically injecting session headers and JSON serialization
+- **Configuration & Shop Identity**: Centralized `src/lib/siteConfig.ts` managing social media handles (`NEXT_PUBLIC_SHOP_X_HANDLE`)
 - **Media & Storage**: Cloudinary REST API (`/api/upload`) for review screenshots and user profile avatars
 - **Styling**: Tailwind CSS + Custom Design System tokens (specified in `DESIGN.md`)
-- **Date & Time Formatting**: Thai Buddhist era / local timezone formatting via `formatThaiDateTime()` in `src/lib/date.ts`
+- **Date & Time Formatting**: Native zero-dependency Thai Buddhist era (`th-TH-u-ca-gregory`) and Bangkok timezone formatting via `formatThaiDateTime()` in `src/lib/date.ts` (using standard `Intl.DateTimeFormat`)
 
 ---
 
@@ -64,10 +66,12 @@ LELE' Ticket is a digital loyalty rewards, social review verification, and fast-
 
 ## 5. UI Engineering & Key Components
 
-1. **`AdminFilterBar`**: Shared search & filter control featuring a 300ms debounce, inline loading spinner, and instant clear `✕` button to prevent UI table flickering.
-2. **`PasswordCriteriaChecklist`**: Shared password security criteria validator (8+ characters, lowercase, uppercase, number) used across first-time rotation, profile settings, and new admin provisioning.
-3. **`Pagination`**: Unified, accessible pagination component serving both customer and admin portals.
-4. **Branding & Assets**: Unified header layout (`LELE' Ticket` + `#เลอเล่อรับกดบัตร` with circular `/icon.png`), circular favicon & app icon natively served via App Router (`src/app/icon.png`, `src/app/favicon.ico`), unified browser title (`LELE' Ticket - #เลอเล่อรับกดบัตร`), and 1-tap circular X action button in navigation bar linking to `@lele0423_ticket`.
-5. **Database Initialization**: `prisma/seed.sql` for idempotent production SQL setup (`ON CONFLICT DO NOTHING`) alongside automatic `ensureDefaultAdmin()` provisioning on first login.
-6. **Zero AI Slop & No Decorative Icons**: Clean, intentional typography and brand colors without ornamental emojis or visual noise.
-7. **Modal State Lifecycle**: Modals cleanly reset transient input states on dismissal, utilizing the standard `fixed inset-0 z-50 bg-[#25384C]/60 backdrop-blur-sm` backdrop.
+1. **`AdminDataTable<T>`**: Unified, fully-typed tabular component powering 100% of admin dashboard views (`ReviewsTab`, `PassesTab`, `PromotionsTab`, `MembersTab`) with column sorting, animated skeleton loading states, empty fallback messages, and integrated pagination.
+2. **`AdminFilterBar`**: Shared search & filter control featuring a 300ms debounce, inline loading spinner, and instant clear `✕` button to prevent UI table flickering.
+3. **`PasswordCriteriaChecklist`**: Shared password security criteria validator (8+ characters, lowercase, uppercase, number) used across first-time rotation, profile settings, and new admin provisioning.
+4. **`Pagination`**: Unified, accessible pagination component serving both customer wallet and admin tables.
+5. **Branding & Assets**: Unified header layout (`LELE' Ticket` + `#เลอเล่อรับกดบัตร` with circular `/icon.png`), circular favicon & app icon natively served via App Router (`src/app/icon.png`, `src/app/favicon.ico`), unified browser title (`LELE' Ticket - #เลอเล่อรับกดบัตร`), and 1-tap circular X action button in navigation bar linking to the store handle configured in `siteConfig.ts`.
+6. **Optimized Next.js Images**: Strictly use `<Image />` with `priority` and explicit dimensions for static assets, and `unoptimized` + `sizes` for dynamic user uploads, complying with Next.js best practices without raw `<img>` tags.
+7. **Database Initialization**: `prisma/seed.sql` for idempotent production SQL setup (`ON CONFLICT DO NOTHING`) alongside automatic `ensureDefaultAdmin()` provisioning on first login.
+8. **Zero AI Slop & No Decorative Icons**: Clean, intentional typography and brand colors without ornamental emojis or visual noise.
+9. **Modal State Lifecycle**: Modals cleanly reset transient input states on dismissal, utilizing the standard `fixed inset-0 z-50 bg-[#25384C]/60 backdrop-blur-sm` backdrop with single-frame inline transitions for multi-step flows.

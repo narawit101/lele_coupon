@@ -33,12 +33,9 @@ export default function ActivityFeed({
   return (
     <div ref={containerRef} className="pt-3 scroll-mt-20">
       <div className="flex items-center justify-between pb-2 mb-1">
-        <h3 className="text-sm font-bold text-[#25384C]">ประวัติกิจกรรมล่าสุด</h3>
-        {activityTotal > 0 && (
-          <span className="text-xs text-[#657406] font-medium font-latin">
-            {activityTotal} รายการ
-          </span>
-        )}
+        <h3 className="text-sm font-bold text-[#25384C]">
+          ประวัติกิจกรรมล่าสุด
+        </h3>
       </div>
 
       {/* History Lists */}
@@ -148,9 +145,7 @@ export default function ActivityFeed({
                       ) : (
                         <span
                           className={`text-xs sm:text-sm font-bold font-latin ${
-                            log.amount > 0
-                              ? "text-[#2D7058]"
-                              : "text-[#B01444]"
+                            log.amount > 0 ? "text-[#2D7058]" : "text-[#B01444]"
                           }`}
                         >
                           {log.amount > 0 ? `+${log.amount}` : log.amount} แต้ม
