@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { Copy } from "lucide-react";
-import { toast } from "react-toastify";
+
 import { AdminMember } from "../types";
 
 export interface AdjustStampsModalProps {

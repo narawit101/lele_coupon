@@ -2,11 +2,9 @@
 
 import React from "react";
 import Image from "next/image";
-import { Copy } from "lucide-react";
-import { toast } from "react-toastify";
 import { getMemberTier, TIER_CONFIGS, MemberTier } from "@/lib/tier";
 import { AdminMember } from "../types";
-import AdminSelect, { AdminSelectOption } from "../AdminSelect";
+import AdminSelect from "../AdminSelect";
 
 export interface AdjustTierModalProps {
   user: AdminMember | null;
@@ -40,7 +38,11 @@ export default function AdjustTierModal({
 }: AdjustTierModalProps) {
   if (!user) return null;
 
-  const currentTier = getMemberTier(user.tier, user.lifetimeStamps, user.stamps);
+  const currentTier = getMemberTier(
+    user.tier,
+    user.lifetimeStamps,
+    user.stamps,
+  );
   const isAutoMode = !user.tier || user.tier === "AUTO";
   const isChangingTier = adjustTier !== (user.tier || "AUTO");
   const disabled = submitting || !isChangingTier;
@@ -108,10 +110,18 @@ export default function AdjustTierModal({
             </div>
             <div className="text-right shrink-0">
               <span className="text-slate-400 block text-[10px] leading-tight">
-                แต้มปัจจุบัน: <strong className="text-[#25384C] font-semibold">{user.stamps}</strong> แต้ม
+                แต้มปัจจุบัน:{" "}
+                <strong className="text-[#25384C] font-semibold">
+                  {user.stamps}
+                </strong>{" "}
+                แต้ม
               </span>
               <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">
-                สะสมทั้งหมด: <strong className="text-[#25384C] font-semibold font-latin">{Math.max(user.lifetimeStamps ?? 0, user.stamps)}</strong> แต้ม
+                สะสมทั้งหมด:{" "}
+                <strong className="text-[#25384C] font-semibold font-latin">
+                  {Math.max(user.lifetimeStamps ?? 0, user.stamps)}
+                </strong>{" "}
+                แต้ม
               </span>
             </div>
           </div>
