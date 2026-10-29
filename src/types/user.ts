@@ -50,6 +50,8 @@ export interface UserProfile {
   xHandle?: string | null;
   phone?: string | null;
   stamps: number;
+  tier?: string | null;
+  lifetimeStamps?: number;
   passes: QueuePass[];
   reviews: ReviewSubmission[];
   pointLogs: PointLog[];

@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { ReviewSubmission, PointLog } from "@/types/user";
 import Pagination from "@/components/Pagination";
 import { formatThaiDateTime } from "@/lib/date";
+import { getMemberTier, MemberTier } from "@/lib/tier";
 
 export type HomeActivity =
   | { type: "REVIEW"; id: string; date: string; review: ReviewSubmission }
@@ -101,6 +103,28 @@ export default function ActivityFeed({
                 const log = item.log;
                 const pass = log.pass;
                 const isUsed = pass?.status === "USED";
+                const isTierChange = log.reason.startsWith(
+                  "ปรับระดับสมาชิกเป็น",
+                );
+
+                // Parse Tier Change Details if applicable
+                let tierTitle = "";
+                let tierNote: string | null = null;
+                let tierConfig: ReturnType<typeof getMemberTier> | null = null;
+
+                if (isTierChange) {
+                  const match = log.reason.match(
+                    /ปรับระดับสมาชิกเป็น\s+([A-Za-z]+)(?:\s+\[หมายเหตุ:\s*(.*)\])?/,
+                  );
+                  if (match) {
+                    const rawTier = match[1].toUpperCase() as MemberTier;
+                    tierConfig = getMemberTier(rawTier);
+                    tierTitle = `ปรับระดับสมาชิกเป็น ${tierConfig.label}`;
+                    tierNote = match[2] ? `หมายเหตุ: ${match[2]}` : null;
+                  } else {
+                    tierTitle = log.reason;
+                  }
+                }
 
                 return (
                   <div
@@ -109,8 +133,15 @@ export default function ActivityFeed({
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-bold text-[#25384C] truncate">
-                        {log.reason.replace(/\s*\([+-]?\d+\s*แต้ม\)$/, "")}
+                        {isTierChange
+                          ? tierTitle
+                          : log.reason.replace(/\s*\([+-]?\d+\s*แต้ม\)$/, "")}
                       </p>
+                      {isTierChange && tierNote && (
+                        <p className="text-[11px] text-slate-500 font-medium mt-0.5 truncate">
+                          {tierNote}
+                        </p>
+                      )}
                       {isUsed && (
                         <p className="text-xs text-[#25384C] mt-0.5 truncate">
                           <span className="text-slate-400 font-medium">
@@ -126,7 +157,13 @@ export default function ActivityFeed({
                       </p>
                     </div>
                     <div className="shrink-0 flex items-center justify-end text-right">
-                      {log.amount === 0 ? (
+                      {isTierChange && tierConfig ? (
+                        <span
+                          className={`inline-flex items-center gap-1 pl-2 pr-2 py-0.5 rounded-full text-[10px] font-bold font-latin border tracking-wide uppercase shadow-2xs ${tierConfig.bgColor} ${tierConfig.textColor} ${tierConfig.borderColor}`}
+                        >
+                          <span>{tierConfig.label}</span>
+                        </span>
+                      ) : log.amount === 0 ? (
                         <span
                           className={`text-xs font-bold ${
                             isUsed || log.reason.startsWith("ใช้สิทธิ์ลัดคิว")

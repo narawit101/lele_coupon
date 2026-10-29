@@ -3,6 +3,8 @@ export { default as AdminFilterBar } from "./AdminFilterBar";
 export * from "./AdminFilterBar";
 export { default as AdminDataTable } from "./AdminDataTable";
 export * from "./AdminDataTable";
+export { default as AdminSelect } from "./AdminSelect";
+export * from "./AdminSelect";
 export { default as PasswordCriteriaChecklist } from "./PasswordCriteriaChecklist";
 
 // Auth
@@ -26,6 +28,7 @@ export { default as EditAdminModal } from "./modals/EditAdminModal";
 export { default as ProfileSettingsModal } from "./modals/ProfileSettingsModal";
 export { default as NewAdminModal } from "./modals/NewAdminModal";
 export { default as AdjustStampsModal } from "./modals/AdjustStampsModal";
+export { default as AdjustTierModal } from "./modals/AdjustTierModal";
 
 // Hooks
 export { useAdminAuth } from "./hooks/useAdminAuth";

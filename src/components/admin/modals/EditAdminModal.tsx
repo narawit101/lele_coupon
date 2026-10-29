@@ -63,7 +63,7 @@ export default function EditAdminModal({
         <form onSubmit={onSave} autoComplete="off" className="space-y-3.5">
           <div>
             <label className="block text-xs font-semibold text-[#25384C] mb-1">
-              ชื่อแอดมินที่ต้องการแสดง <span className="text-[#B01444]">*</span>
+              ชื่อ <span className="text-[#B01444]">*</span>
             </label>
             <input
               type="text"

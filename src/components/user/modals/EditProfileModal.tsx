@@ -188,7 +188,7 @@ export default function EditProfileModal({
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1">
-            เบอร์โทรศัพท์ (ไม่บังคับ)
+            เบอร์โทรศัพท์
           </label>
           <input
             type="tel"

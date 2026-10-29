@@ -15,6 +15,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **No Decorative Icons (ห้ามใส่ icon)**: Do not add decorative icons or emojis (e.g. `Camera`, `CheckCircle2`, `Clock`, `XCircle`, `PlusCircle`, `Send`, `Sparkles`, `📌`) into buttons, status badges, helper banners, or form cards. Rely on strong, clean typography, intentional spacing, and curated brand colors. Icons are strictly limited to necessary navigation controls (such as modal close `✕` or pagination arrows) and functional triggers (such as `MessageSquarePlus` for adding a review).
 - **Single Source of Truth**: Centralize and reuse shared logic and UI components instead of creating duplicated variations:
   - `AdminDataTable.tsx`: Unified data table component across 100% of admin views (`ReviewsTab`, `PassesTab`, `PromotionsTab`, `MembersTab`) with typed `ColumnDef`, sorting arrows, pulse skeleton loaders, empty states, and integrated pagination.
+  - `AdminSelect.tsx`: Unified custom dropdown component replacing all native HTML `<select>` across the entire admin panel with brand styling, animated chevron, click-outside auto-close, and keyboard accessibility.
   - `Pagination.tsx`: Unified pagination across user wallet and admin tables.
   - `AdminFilterBar.tsx`: Unified search and filtering across all admin tabs with 300ms debouncing, search icon loading spinner, and instant clear `✕` button.
   - `PasswordCriteriaChecklist.tsx`: Unified real-time password strength checklist across login reset, profile settings, and admin creation.

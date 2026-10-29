@@ -36,9 +36,15 @@ export function useAdminMembers({
   // Adjust Stamps Modal
   const [adjustModalUser, setAdjustModalUser] = useState<AdminMember | null>(null);
   const [adjustMode, setAdjustMode] = useState<"ADD" | "DEDUCT">("ADD");
-  const [adjustAmount, setAdjustAmount] = useState(1);
+  const [adjustAmount, setAdjustAmount] = useState(0);
   const [adjustReason, setAdjustReason] = useState("");
   const [adjustSubmitting, setAdjustSubmitting] = useState(false);
+
+  // Member Tier Modal
+  const [tierModalUser, setTierModalUser] = useState<AdminMember | null>(null);
+  const [adjustTier, setAdjustTier] = useState<string>("AUTO");
+  const [tierReason, setTierReason] = useState("");
+  const [tierSubmitting, setTierSubmitting] = useState(false);
 
   // Edit Admin Modal
   const [showEditAdminModal, setShowEditAdminModal] = useState(false);
@@ -57,6 +63,7 @@ export function useAdminMembers({
   const [newAdminPasswordMode, setNewAdminPasswordMode] = useState<"DEFAULT" | "CUSTOM">("DEFAULT");
   const [newAdminPassword, setNewAdminPassword] = useState("");
   const [savingNewAdmin, setSavingNewAdmin] = useState(false);
+  const [membersTierFilter, setMembersTierFilter] = useState("ALL");
 
   const membersStatus = membersSubTab === "ADMINS" ? "ADMIN" : "ALL";
 
@@ -66,6 +73,7 @@ export function useAdminMembers({
       page = membersPage,
       q = membersSearch,
       status = membersStatus,
+      tier = membersTierFilter,
       sortBy = membersSortBy,
       sortOrder = membersSortOrder,
     ) => {
@@ -73,7 +81,7 @@ export function useAdminMembers({
       setMembersLoading(true);
       try {
         const res = await adminFetch(
-          `/api/admin/members?page=${page}&limit=10&q=${encodeURIComponent(q)}&status=${status}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+          `/api/admin/members?page=${page}&limit=10&q=${encodeURIComponent(q)}&status=${status}&tier=${tier}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
           { token },
         );
         if (res.ok) {
@@ -90,13 +98,14 @@ export function useAdminMembers({
         setMembersLoading(false);
       }
     },
-    [adminToken, membersPage, membersSearch, membersStatus, membersSortBy, membersSortOrder],
+    [adminToken, membersPage, membersSearch, membersStatus, membersTierFilter, membersSortBy, membersSortOrder],
   );
 
   const handleSubTabChange = (tab: "CUSTOMERS" | "ADMINS") => {
     setMembersSubTab(tab);
     setMembersPage(1);
     setMembersSearch("");
+    setMembersTierFilter("ALL");
     setMembersSortBy("");
   };
 
@@ -112,7 +121,7 @@ export function useAdminMembers({
     return () => {
       ignore = true;
     };
-  }, [adminToken, membersPage, membersSearch, membersStatus, membersSortBy, membersSortOrder, fetchMembers]);
+  }, [adminToken, membersPage, membersSearch, membersStatus, membersTierFilter, membersSortBy, membersSortOrder, fetchMembers]);
 
   const handleSortMembers = (field: "displayName" | "xHandle" | "stamps" | "passes") => {
     if (membersSortBy === field) {
@@ -126,7 +135,7 @@ export function useAdminMembers({
   const openAdjustModal = (user: AdminMember) => {
     setAdjustModalUser(user);
     setAdjustMode("ADD");
-    setAdjustAmount(1);
+    setAdjustAmount(0);
     setAdjustReason("");
   };
 
@@ -134,12 +143,22 @@ export function useAdminMembers({
     setAdjustModalUser(null);
   };
 
+  const openTierModal = (user: AdminMember) => {
+    setTierModalUser(user);
+    setAdjustTier(user.tier || "AUTO");
+    setTierReason("");
+  };
+
+  const closeTierModal = () => {
+    setTierModalUser(null);
+  };
+
   const handleAdjustStamps = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adjustModalUser) return;
 
-    if (!adjustAmount || adjustAmount <= 0) {
-      toast.error("กรุณาระบุจำนวนแต้มอย่างน้อย 1 แต้ม");
+    if (adjustAmount <= 0) {
+      toast.error("กรุณาระบุจำนวนแต้มที่ต้องการปรับ");
       return;
     }
 
@@ -167,11 +186,7 @@ export function useAdminMembers({
       });
 
       if (res.ok) {
-        toast.success(
-          adjustMode === "ADD"
-            ? `เพิ่ม ${adjustAmount} แต้มเรียบร้อยแล้ว`
-            : `ลด ${adjustAmount} แต้มเรียบร้อยแล้ว`,
-        );
+        toast.success("บันทึกการปรับแต้มเรียบร้อยแล้ว");
         closeAdjustModal();
         await fetchMembers();
         if (onRefreshAll) await onRefreshAll();
@@ -183,6 +198,46 @@ export function useAdminMembers({
       toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ");
     } finally {
       setAdjustSubmitting(false);
+    }
+  };
+
+  const handleSaveTier = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tierModalUser) return;
+
+    const isChangingTier = adjustTier !== (tierModalUser.tier || "AUTO");
+    if (!isChangingTier) {
+      toast.error("กรุณาเลือกระดับสมาชิกใหม่ที่แตกต่างจากระดับเดิม");
+      return;
+    }
+
+    setTierSubmitting(true);
+
+    try {
+      const res = await adminFetch("/api/admin/members", {
+        method: "POST",
+        token: adminToken,
+        json: {
+          userId: tierModalUser.id,
+          amount: 0,
+          tier: adjustTier,
+          reason: tierReason.trim() || "ปรับระดับสมาชิกโดยแอดมิน",
+        },
+      });
+
+      if (res.ok) {
+        toast.success("บันทึกระดับสมาชิกเรียบร้อยแล้ว");
+        closeTierModal();
+        await fetchMembers();
+        if (onRefreshAll) await onRefreshAll();
+      } else {
+        const err = await res.json();
+        toast.error(err.error || "ปรับระดับสมาชิกไม่สำเร็จ");
+      }
+    } catch {
+      toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+    } finally {
+      setTierSubmitting(false);
     }
   };
 
@@ -351,11 +406,17 @@ export function useAdminMembers({
     membersSortBy,
     membersSortOrder,
     membersLoading,
+    membersTierFilter,
+    setMembersTierFilter,
     adjustModalUser,
     adjustMode,
     adjustAmount,
     adjustReason,
     adjustSubmitting,
+    tierModalUser,
+    adjustTier,
+    tierReason,
+    tierSubmitting,
     showEditAdminModal,
     editingAdmin,
     editAdminName,
@@ -371,6 +432,8 @@ export function useAdminMembers({
     setAdjustMode,
     setAdjustAmount,
     setAdjustReason,
+    setAdjustTier,
+    setTierReason,
     setEditAdminName,
     setNewAdminEmail,
     setNewAdminName,
@@ -380,6 +443,9 @@ export function useAdminMembers({
     openAdjustModal,
     closeAdjustModal,
     handleAdjustStamps,
+    openTierModal,
+    closeTierModal,
+    handleSaveTier,
     openEditAdmin,
     closeEditAdminModal,
     handleSaveAdminName,

@@ -49,6 +49,8 @@ export interface AdminMember {
   xHandle?: string;
   phone?: string;
   stamps: number;
+  tier?: string | null;
+  lifetimeStamps?: number;
   createdAt: string;
   isAdmin?: boolean;
   role?: string;

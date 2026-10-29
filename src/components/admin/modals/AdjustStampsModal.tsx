@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import { Copy } from "lucide-react";
+import { toast } from "react-toastify";
 import { AdminMember } from "../types";
 
 export interface AdjustStampsModalProps {
@@ -30,6 +32,11 @@ export default function AdjustStampsModal({
 }: AdjustStampsModalProps) {
   if (!user) return null;
 
+  const isChangingStamps = adjustAmount > 0;
+  const isExceeding = adjustMode === "DEDUCT" && adjustAmount > user.stamps;
+  const disabled = submitting || isExceeding || !isChangingStamps;
+  const submitBgColor = adjustMode === "DEDUCT" ? "#B01444" : "#2D7058";
+
   return (
     <div
       className="fixed inset-0 z-50 bg-[#25384C]/60 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
@@ -44,12 +51,9 @@ export default function AdjustStampsModal({
         {/* Header */}
         <div className="flex items-start justify-between gap-3 pb-3 border-b border-[#D0DEF7]/60">
           <div className="min-w-0">
-            <h3 className="text-sm font-bold text-[#25384C]">
+            <h3 className="text-sm font-bold text-[#25384C] truncate">
               ปรับแต้มสะสม: {user.displayName}
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              จัดการแต้มของลูกค้าในระบบ
-            </p>
           </div>
           <button
             type="button"
@@ -83,7 +87,8 @@ export default function AdjustStampsModal({
             type="button"
             onClick={() => setAdjustMode("DEDUCT")}
             style={{
-              backgroundColor: adjustMode === "DEDUCT" ? "#B01444" : "transparent",
+              backgroundColor:
+                adjustMode === "DEDUCT" ? "#B01444" : "transparent",
               color: adjustMode === "DEDUCT" ? "#FFFFFF" : undefined,
             }}
             className={`py-1.5 rounded-md font-semibold transition cursor-pointer text-center ${
@@ -99,14 +104,18 @@ export default function AdjustStampsModal({
         {/* Live Balance Preview Card */}
         <div className="p-3 bg-[#FAF8F2] rounded-[10px] border border-[#D0DEF7] flex items-center justify-between text-xs">
           <div>
-            <span className="text-slate-500 block text-[11px]">แต้มปัจจุบัน</span>
+            <span className="text-slate-500 block text-[11px]">
+              แต้มปัจจุบัน
+            </span>
             <span className="font-bold text-[#25384C] text-sm">
               {user.stamps} แต้ม
             </span>
           </div>
           <div className="text-slate-400 font-bold text-sm">→</div>
           <div className="text-right">
-            <span className="text-slate-500 block text-[11px]">แต้มหลังปรับ</span>
+            <span className="text-slate-500 block text-[11px]">
+              แต้มหลังปรับ
+            </span>
             <span
               style={{
                 color:
@@ -157,7 +166,9 @@ export default function AdjustStampsModal({
               </div>
               <button
                 type="button"
-                disabled={adjustMode === "DEDUCT" && adjustAmount >= user.stamps}
+                disabled={
+                  adjustMode === "DEDUCT" && adjustAmount >= user.stamps
+                }
                 onClick={() => setAdjustAmount((prev) => prev + 1)}
                 className="w-9 h-9 flex items-center justify-center bg-[#FAF8F2] hover:bg-[#D0DEF7]/40 disabled:opacity-40 text-[#25384C] border border-[#D0DEF7] rounded-lg transition cursor-pointer text-base font-bold shrink-0"
               >
@@ -214,7 +225,8 @@ export default function AdjustStampsModal({
             {/* Deduction Validation Alert */}
             {adjustMode === "DEDUCT" && adjustAmount > user.stamps && (
               <p className="text-[11px] text-[#B01444] font-medium pt-1">
-                ไม่สามารถลดแต้มเกินจำนวนที่ลูกค้ามีอยู่ได้ (ปัจจุบันมี {user.stamps} แต้ม)
+                ไม่สามารถลดแต้มเกินจำนวนที่ลูกค้ามีอยู่ได้ (ปัจจุบันมี{" "}
+                {user.stamps} แต้ม)
               </p>
             )}
           </div>
@@ -222,7 +234,7 @@ export default function AdjustStampsModal({
           {/* Reason Field */}
           <div>
             <label className="block text-xs font-semibold text-[#25384C] mb-1">
-              เหตุผล (บันทึกในประวัติ)
+              เหตุผล
             </label>
             <input
               type="text"
@@ -249,25 +261,17 @@ export default function AdjustStampsModal({
             </button>
             <button
               type="submit"
-              disabled={
-                submitting ||
-                adjustAmount <= 0 ||
-                (adjustMode === "DEDUCT" && adjustAmount > user.stamps)
-              }
-              style={{
-                backgroundColor: adjustMode === "DEDUCT" ? "#B01444" : "#2D7058",
-              }}
-              className={`flex-1 py-2 text-xs font-semibold rounded-lg text-white shadow-sm transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                adjustMode === "DEDUCT"
-                  ? "hover:bg-[#8E1037]"
-                  : "hover:bg-[#235845]"
-              }`}
+              disabled={disabled}
+              style={{ backgroundColor: submitBgColor }}
+              className="flex-1 py-2 text-xs font-semibold rounded-lg text-white shadow-sm transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
             >
               {submitting
                 ? "กำลังบันทึก..."
-                : adjustMode === "ADD"
-                  ? `ยืนยันเพิ่ม ${adjustAmount || 0} แต้ม`
-                  : `ยืนยันลด ${adjustAmount || 0} แต้ม`}
+                : isChangingStamps
+                  ? adjustMode === "ADD"
+                    ? `ยืนยันเพิ่ม ${adjustAmount} แต้ม`
+                    : `ยืนยันลด ${adjustAmount} แต้ม`
+                  : "ระบุจำนวนแต้ม"}
             </button>
           </div>
         </form>

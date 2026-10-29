@@ -27,7 +27,7 @@ LELE' Ticket is a digital loyalty rewards, social review verification, and fast-
 ---
 
 ## 3. Data Architecture (Prisma Models)
-- **`User`**: Customer profile containing LINE user ID (`lineId`), display name, avatar URL, X username (`xHandle`), telephone number, and current point balance (`stamps`).
+- **`User`**: Customer profile containing LINE user ID (`lineId`), display name, avatar URL, X username (`xHandle`), telephone number, current point balance (`stamps`), lifetime accumulated points (`lifetimeStamps`), and optional manual VIP override (`tier`).
 - **`Admin`**: Administrative accounts categorized by role (`DEV`, `OWNER`, `STAFF`), password hashes, and initial rotation flags (`mustChangePassword`).
 - **`ReviewSubmission`**: Submitted review evidence storing concert name, X handle, tweet link, image URL, and lifecycle status (`PENDING`, `APPROVED`, `REJECTED`).
 - **`QueuePass`**: Unique redemption vouchers (e.g., `LELE-RW-XXXXX` / `LELE-FT-XXXXX`) generated via point redemption, tied to promotional rewards, tracking usage status (`ACTIVE`, `USED`).
@@ -75,3 +75,4 @@ LELE' Ticket is a digital loyalty rewards, social review verification, and fast-
 7. **Database Initialization**: `prisma/seed.sql` for idempotent production SQL setup (`ON CONFLICT DO NOTHING`) alongside automatic `ensureDefaultAdmin()` provisioning on first login.
 8. **Zero AI Slop & No Decorative Icons**: Clean, intentional typography and brand colors without ornamental emojis or visual noise.
 9. **Modal State Lifecycle**: Modals cleanly reset transient input states on dismissal, utilizing the standard `fixed inset-0 z-50 bg-[#25384C]/60 backdrop-blur-sm` backdrop with single-frame inline transitions for multi-step flows.
+10. **Dedicated Member & Tier Management Modals**: Separated `AdjustStampsModal` (focused exclusively on point additions/deductions with live balance preview, quick chips, and reason tracking) and `AdjustTierModal` (dedicated member tier management, tier preview with badge crest, lifetime points, and VIP manual override) coupled with dual compact action buttons `[ ปรับแต้ม ]` and `[ ปรับระดับ ]` and dedicated "ระดับสมาชิก" column & filter in the admin members table.

@@ -2,9 +2,13 @@
 
 import React, { useCallback, useMemo } from "react";
 import Image from "next/image";
+import { Copy, Pencil, Trash2 } from "lucide-react";
+import { toast } from "react-toastify";
+import { getMemberTier } from "@/lib/tier";
 import AdminFilterBar from "../AdminFilterBar";
 import AdminDataTable, { ColumnDef } from "../AdminDataTable";
 import AdjustStampsModal from "../modals/AdjustStampsModal";
+import AdjustTierModal from "../modals/AdjustTierModal";
 import EditAdminModal from "../modals/EditAdminModal";
 import NewAdminModal from "../modals/NewAdminModal";
 import { AdminMember, AdminProfile, ConfirmModalConfig } from "../types";
@@ -22,12 +26,18 @@ export interface MembersTabProps {
   membersSortBy: "displayName" | "xHandle" | "stamps" | "passes" | "";
   membersSortOrder: "asc" | "desc";
   membersLoading: boolean;
+  membersTierFilter: string;
+  onTierFilterChange: (tier: string) => void;
   adminProfile: AdminProfile | null;
   adjustModalUser: AdminMember | null;
   adjustMode: "ADD" | "DEDUCT";
   adjustAmount: number;
   adjustReason: string;
   adjustSubmitting: boolean;
+  tierModalUser: AdminMember | null;
+  adjustTier: string;
+  tierReason: string;
+  tierSubmitting: boolean;
   showEditAdminModal: boolean;
   editingAdmin: { id: string; name: string; role?: string } | null;
   editAdminName: string;
@@ -47,6 +57,11 @@ export interface MembersTabProps {
   onAdjustAmountChange: React.Dispatch<React.SetStateAction<number>>;
   onAdjustReasonChange: (reason: string) => void;
   onAdjustSubmit: (e: React.FormEvent) => void;
+  onOpenTier: (member: AdminMember) => void;
+  onCloseTier: () => void;
+  onAdjustTierChange: (tier: string) => void;
+  onTierReasonChange: (reason: string) => void;
+  onTierSubmit: (e: React.FormEvent) => void;
   onOpenEditAdmin: (admin: { id: string; name: string; role?: string }) => void;
   onCloseEditAdmin: () => void;
   onEditAdminNameChange: (name: string) => void;
@@ -75,12 +90,18 @@ export default function MembersTab({
   membersSortBy,
   membersSortOrder,
   membersLoading,
+  membersTierFilter,
+  onTierFilterChange,
   adminProfile,
   adjustModalUser,
   adjustMode,
   adjustAmount,
   adjustReason,
   adjustSubmitting,
+  tierModalUser,
+  adjustTier,
+  tierReason,
+  tierSubmitting,
   showEditAdminModal,
   editingAdmin,
   editAdminName,
@@ -100,6 +121,11 @@ export default function MembersTab({
   onAdjustAmountChange,
   onAdjustReasonChange,
   onAdjustSubmit,
+  onOpenTier,
+  onCloseTier,
+  onAdjustTierChange,
+  onTierReasonChange,
+  onTierSubmit,
   onOpenEditAdmin,
   onCloseEditAdmin,
   onEditAdminNameChange,
@@ -138,32 +164,50 @@ export default function MembersTab({
           sortable: true,
           className: "font-semibold text-[#25384C] whitespace-nowrap",
           render: (m) => (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               {m.avatarUrl ? (
                 <Image
                   src={m.avatarUrl}
                   alt={m.displayName}
-                  width={28}
-                  height={28}
+                  width={36}
+                  height={36}
                   unoptimized
-                  className="w-7 h-7 rounded-full object-cover border border-[#D0DEF7] shrink-0"
+                  className="w-9 h-9 rounded-full object-cover border border-[#D0DEF7] shrink-0 shadow-2xs"
                 />
               ) : (
-                <div className="w-7 h-7 rounded-full bg-[#D0DEF7]/40 flex items-center justify-center text-[10px] font-bold text-[#25384C]">
+                <div className="w-9 h-9 rounded-full bg-[#D0DEF7]/40 border border-[#D0DEF7] flex items-center justify-center text-xs font-bold text-[#25384C] shrink-0 shadow-2xs">
                   {m.displayName?.slice(0, 2).toUpperCase() || "MB"}
                 </div>
               )}
-              <span>{m.displayName}</span>
-              {m.isAdmin && m.id === adminProfile?.id && (
-                <span className="text-[10px] text-slate-400 font-normal">
-                  (คุณ)
-                </span>
-              )}
-              {m.isAdmin && m.role === "DEV" && (
-                <span className="text-[10px] font-mono text-[#315F91] bg-[#D0DEF7]/40 px-1.5 py-0.5 rounded">
-                  DEV
-                </span>
-              )}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="leading-tight">{m.displayName}</span>
+                {!(m.role === "DEV" && adminProfile?.role !== "DEV") && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onOpenEditAdmin({
+                        id: m.id,
+                        name: m.displayName,
+                        role: m.role,
+                      })
+                    }
+                    title="คลิกเพื่อแก้ไขชื่อแอดมิน"
+                    className="w-5 h-5 rounded-md hover:bg-[#D0DEF7]/40 text-slate-400 hover:text-[#25384C] border border-transparent hover:border-[#D0DEF7] inline-flex items-center justify-center transition cursor-pointer active:scale-95"
+                  >
+                    <Pencil className="w-2.5 h-2.5 shrink-0" />
+                  </button>
+                )}
+                {m.isAdmin && m.id === adminProfile?.id && (
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    (คุณ)
+                  </span>
+                )}
+                {m.isAdmin && m.role === "DEV" && (
+                  <span className="text-[9.5px] font-mono font-bold text-[#315F91] bg-[#D0DEF7]/40 border border-[#D0DEF7] px-1.5 py-0.5 rounded-full">
+                    DEV
+                  </span>
+                )}
+              </div>
             </div>
           ),
         },
@@ -184,40 +228,25 @@ export default function MembersTab({
           align: "right",
           className: "whitespace-nowrap",
           render: (m) => (
-            <div className="flex items-center justify-end gap-1.5">
-              {!(m.role === "DEV" && adminProfile?.role !== "DEV") && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    onOpenEditAdmin({
-                      id: m.id,
-                      name: m.displayName,
-                      role: m.role,
-                    })
-                  }
-                  className="px-2.5 py-1 text-xs bg-[#FAF8F2] hover:bg-[#D0DEF7]/40 text-[#25384C] border border-[#D0DEF7] rounded-lg font-semibold transition cursor-pointer"
-                >
-                  แก้ไขชื่อ
-                </button>
-              )}
+            <div className="flex items-center justify-end">
               {m.id !== adminProfile?.id &&
                 m.role !== "DEV" &&
                 (adminProfile?.role === "DEV" ||
-                  adminProfile?.role === "OWNER") && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      promptDeleteAdmin(
-                        m.id,
-                        m.displayName,
-                        m.xHandle || "",
-                      )
-                    }
-                    className="px-2.5 py-1 text-xs bg-rose-50 hover:bg-rose-100 text-[#B01444] border border-rose-200 rounded-lg font-semibold transition cursor-pointer"
-                  >
-                    ลบ
-                  </button>
-                )}
+                  adminProfile?.role === "OWNER") ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    promptDeleteAdmin(m.id, m.displayName, m.xHandle || "")
+                  }
+                  title="ลบสิทธิ์แอดมิน"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs text-[#B01444] hover:text-[#800C30] bg-rose-50 hover:bg-rose-100/80 border border-rose-200/80 rounded-lg font-medium transition cursor-pointer shadow-2xs active:scale-95"
+                >
+                  <Trash2 className="w-3 h-3 shrink-0" />
+                  <span>ลบ</span>
+                </button>
+              ) : (
+                <span className="text-[11px] text-slate-400 pr-2">-</span>
+              )}
             </div>
           ),
         },
@@ -230,26 +259,91 @@ export default function MembersTab({
         header: "สมาชิก",
         sortable: true,
         className: "font-semibold text-[#25384C] whitespace-nowrap",
-        render: (m) => (
-          <div className="flex items-center gap-2">
-            {m.avatarUrl ? (
-              <Image
-                src={m.avatarUrl}
-                alt={m.displayName}
-                width={28}
-                height={28}
-                unoptimized
-                className="w-7 h-7 rounded-full object-cover border border-[#D0DEF7] shrink-0"
-              />
-            ) : (
-              <div className="w-7 h-7 rounded-full bg-[#D0DEF7]/40 flex items-center justify-center text-[10px] font-bold text-[#25384C]">
-                {m.displayName?.slice(0, 2).toUpperCase() || "MB"}
+        render: (m) => {
+          const t = getMemberTier(m.tier, m.lifetimeStamps, m.stamps);
+          return (
+            <div className="flex items-center gap-2.5">
+              {/* Avatar with Tier Frame Overlay (Enlarged to 40px for crystal-clear avatar visibility) */}
+              <div className="relative shrink-0 flex items-center justify-center w-10 h-10">
+                <div
+                  className="absolute rounded-full overflow-hidden bg-[#FAF8F2] z-0 shadow-inner"
+                  style={{
+                    top: t.avatarMetrics.top,
+                    left: t.avatarMetrics.left,
+                    width: t.avatarMetrics.size,
+                    height: t.avatarMetrics.size,
+                    transform: "translate(-50%, -50%)",
+                  }}
+                >
+                  {m.avatarUrl ? (
+                    <Image
+                      src={m.avatarUrl}
+                      alt={m.displayName}
+                      fill
+                      unoptimized
+                      sizes="40px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-[#25384C]">
+                      {m.displayName?.slice(0, 2).toUpperCase() || "MB"}
+                    </div>
+                  )}
+                </div>
+
+                {t.frameImage && (
+                  <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
+                    <Image
+                      src={t.frameImage}
+                      alt={t.label}
+                      width={40}
+                      height={40}
+                      unoptimized
+                      className="w-full h-full object-contain pointer-events-none select-none drop-shadow-xs"
+                    />
+                  </div>
+                )}
               </div>
-            )}
-            <span>{m.displayName}</span>
-          </div>
-        ),
+
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="leading-tight font-semibold text-[#25384C] block truncate max-w-[130px] sm:max-w-[160px]">
+                    {m.displayName}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onOpenTier(m)}
+                    title="คลิกเพื่อปรับระดับสมาชิก"
+                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold font-latin border tracking-wide uppercase transition cursor-pointer hover:shadow-2xs active:scale-95 group ${t.bgColor} ${t.textColor} ${t.borderColor}`}
+                  >
+                    <span>{t.label}</span>
+                    <Pencil className="w-2.5 h-2.5 opacity-50 group-hover:opacity-100 transition shrink-0" />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(m.id);
+                    toast.success(`คัดลอก Member ID แล้ว (${m.displayName})`);
+                  }}
+                  title="คลิกเพื่อคัดลอก Member ID"
+                  className="inline-flex items-center gap-1 font-mono text-[10px] text-slate-400 hover:text-[#315F91] hover:underline cursor-pointer transition mt-0.5"
+                >
+                  <span>
+                    #
+                    {m.id && m.id.length > 8
+                      ? `${m.id.slice(0, 4)}...${m.id.slice(-4)}`
+                      : m.id}
+                  </span>
+                  <Copy className="w-2.5 h-2.5 opacity-60 shrink-0" />
+                </button>
+              </div>
+            </div>
+          );
+        },
       },
+
       {
         key: "xHandle",
         header: "บัญชี X",
@@ -271,30 +365,31 @@ export default function MembersTab({
       },
       {
         key: "stamps",
-        header: "แต้มปัจจุบัน",
+        header: "แต้มสะสม",
         sortable: true,
         className: "whitespace-nowrap",
-        render: (m) => (
-          <>
-            <span className="font-bold text-[#25384C] text-sm">{m.stamps}</span>{" "}
-            <span className="text-slate-500 text-xs">แต้ม</span>
-          </>
-        ),
-      },
-      {
-        key: "actions",
-        header: "การจัดการ",
-        align: "right",
-        className: "whitespace-nowrap",
-        render: (m) => (
-          <button
-            type="button"
-            onClick={() => onOpenAdjust(m)}
-            className="px-2.5 py-1 text-xs bg-[#FAF8F2] hover:bg-[#D0DEF7]/40 text-[#25384C] border border-[#D0DEF7] rounded-lg font-semibold transition cursor-pointer"
-          >
-            ปรับแต้ม
-          </button>
-        ),
+        render: (m) => {
+          const totalPoints = Math.max(m.lifetimeStamps ?? 0, m.stamps);
+          return (
+            <div className="flex flex-col">
+              <div className="inline-flex items-center gap-1.5">
+                <span className="font-bold text-[#25384C] text-sm">{m.stamps}</span>{" "}
+                <span className="text-slate-500 text-xs">แต้ม</span>
+                <button
+                  type="button"
+                  onClick={() => onOpenAdjust(m)}
+                  title="คลิกเพื่อปรับแต้มสมาชิก"
+                  className="w-5 h-5 rounded-md hover:bg-[#D0DEF7]/40 text-slate-400 hover:text-[#25384C] border border-transparent hover:border-[#D0DEF7] flex items-center justify-center transition cursor-pointer active:scale-95 ml-0.5"
+                >
+                  <Pencil className="w-2.5 h-2.5 shrink-0" />
+                </button>
+              </div>
+              <span className="text-[10px] text-slate-400 mt-0.5">
+                สะสมทั้งหมด {totalPoints} แต้ม
+              </span>
+            </div>
+          );
+        },
       },
     ];
   }, [
@@ -304,6 +399,7 @@ export default function MembersTab({
     onOpenEditAdmin,
     promptDeleteAdmin,
     onOpenAdjust,
+    onOpenTier,
   ]);
 
   return (
@@ -362,6 +458,21 @@ export default function MembersTab({
         searchQuery={membersSearch}
         onSearchChange={onSearchChange}
         isLoading={membersLoading}
+        filterOptions={
+          membersSubTab === "CUSTOMERS"
+            ? [
+                { value: "ALL", label: "ทุกระดับ" },
+                { value: "BRONZE", label: "Bronze" },
+                { value: "SILVER", label: "Silver" },
+                { value: "GOLD", label: "Gold" },
+                { value: "PLATINUM", label: "Platinum" },
+                { value: "DIAMOND", label: "Diamond" },
+              ]
+            : undefined
+        }
+        filterValue={membersTierFilter}
+        onFilterChange={onTierFilterChange}
+        filterLabel="ระดับ"
         actionButton={
           membersSubTab === "ADMINS" &&
           (adminProfile?.role === "DEV" || adminProfile?.role === "OWNER") ? (
@@ -407,6 +518,18 @@ export default function MembersTab({
         setAdjustReason={onAdjustReasonChange}
         submitting={adjustSubmitting}
         onSubmit={onAdjustSubmit}
+      />
+
+      {/* Adjust Member Tier Modal */}
+      <AdjustTierModal
+        user={tierModalUser}
+        onClose={onCloseTier}
+        adjustTier={adjustTier}
+        setAdjustTier={onAdjustTierChange}
+        adjustReason={tierReason}
+        setAdjustReason={onTierReasonChange}
+        submitting={tierSubmitting}
+        onSubmit={onTierSubmit}
       />
 
       {/* Edit Admin Modal */}

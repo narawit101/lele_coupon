@@ -9,7 +9,7 @@ A high-performance digital membership, reward redemption, and social review veri
 ### 1. Customer LIFF & Web Portal
 
 - **Seamless & Resilient LINE Authentication**: Frictionless onboarding via LINE LIFF. Profile data (display name, avatar) is automatically synchronized. Managed through singleton `initLiff` with automatic URL parameter cleanup (`window.history.replaceState`), eliminating `invalid authorization code` errors on initial redirect.
-- **Digital Member Card**: Visual card surface utilizing the Cream and Booking Blue palette. Displays membership information, X (Twitter) handle, current point balance, and profile editing controls.
+- **Digital Member Card**: Visual card surface utilizing the Cream and Booking Blue palette. Displays membership information, Member Tier badge (Bronze, Silver, Gold, Platinum, Diamond), copyable Member ID, X (Twitter) handle, current point balance, and profile editing controls.
 - **Reward Exchange Catalog**: Interactive modal displaying redemption rewards (e.g., booking discounts, fast-track queue privileges) with 6 items per page client-side pagination, featuring prominent unpill'd bold point cost numbers (`text-base font-extrabold`).
 - **Fast Track Pass Wallet**:
   - Unified view with filter tabs: **All**, **Active**, and **Used**.

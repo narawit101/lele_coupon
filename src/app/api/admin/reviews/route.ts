@@ -125,7 +125,10 @@ export async function POST(req: NextRequest) {
         });
         await tx.user.update({
           where: { id: review.userId },
-          data: { stamps: newStamps },
+          data: {
+            stamps: newStamps,
+            lifetimeStamps: { decrement: 1 },
+          },
         });
       }
 
@@ -160,6 +163,7 @@ export async function POST(req: NextRequest) {
         where: { id: review.userId },
         data: {
           stamps: currentStamps,
+          lifetimeStamps: { increment: 1 },
         },
       });
 

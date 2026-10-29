@@ -43,9 +43,7 @@ export default function InspectPassModal({
               </h3>
               <span
                 className={`text-xs font-semibold ${
-                  pass.status === "ACTIVE"
-                    ? "text-[#657406]"
-                    : "text-slate-400"
+                  pass.status === "ACTIVE" ? "text-[#657406]" : "text-slate-400"
                 }`}
               >
                 {pass.status === "ACTIVE" ? "ยังไม่ใช้งาน" : "ใช้งานแล้ว"}
@@ -100,7 +98,7 @@ export default function InspectPassModal({
           <div className="pt-2 border-t border-[#D0DEF7]/40 space-y-3">
             <div>
               <label className="block text-xs font-semibold text-[#25384C] mb-1">
-                งานที่ใช้งาน (ไม่บังคับ)
+                งานที่ใช้งาน
               </label>
               <input
                 type="text"

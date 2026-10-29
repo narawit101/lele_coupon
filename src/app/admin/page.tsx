@@ -414,12 +414,21 @@ export default function AdminDashboard() {
             membersSortBy={membersHook.membersSortBy}
             membersSortOrder={membersHook.membersSortOrder}
             membersLoading={membersHook.membersLoading}
+            membersTierFilter={membersHook.membersTierFilter}
+            onTierFilterChange={(tier) => {
+              membersHook.setMembersTierFilter(tier);
+              membersHook.setMembersPage(1);
+            }}
             adminProfile={auth.adminProfile}
             adjustModalUser={membersHook.adjustModalUser}
             adjustMode={membersHook.adjustMode}
             adjustAmount={membersHook.adjustAmount}
             adjustReason={membersHook.adjustReason}
             adjustSubmitting={membersHook.adjustSubmitting}
+            tierModalUser={membersHook.tierModalUser}
+            adjustTier={membersHook.adjustTier}
+            tierReason={membersHook.tierReason}
+            tierSubmitting={membersHook.tierSubmitting}
             showEditAdminModal={membersHook.showEditAdminModal}
             editingAdmin={membersHook.editingAdmin}
             editAdminName={membersHook.editAdminName}
@@ -439,6 +448,11 @@ export default function AdminDashboard() {
             onAdjustAmountChange={membersHook.setAdjustAmount}
             onAdjustReasonChange={membersHook.setAdjustReason}
             onAdjustSubmit={membersHook.handleAdjustStamps}
+            onOpenTier={membersHook.openTierModal}
+            onCloseTier={membersHook.closeTierModal}
+            onAdjustTierChange={membersHook.setAdjustTier}
+            onTierReasonChange={membersHook.setTierReason}
+            onTierSubmit={membersHook.handleSaveTier}
             onOpenEditAdmin={membersHook.openEditAdmin}
             onCloseEditAdmin={membersHook.closeEditAdminModal}
             onEditAdminNameChange={membersHook.setEditAdminName}

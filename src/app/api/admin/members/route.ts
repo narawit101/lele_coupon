@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
+import { getMemberTier } from "@/lib/tier";
 import { getAdminFromRequest } from "@/lib/admin-auth";
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "lele_admin_2026";
@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
   const limit = Math.max(1, Math.min(100, parseInt(searchParams.get("limit") || "10", 10)));
   const query = searchParams.get("q")?.trim() || "";
   const status = searchParams.get("status") || "ALL";
+  const tier = searchParams.get("tier") || "ALL";
   const sortBy = searchParams.get("sortBy") || "";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
@@ -86,11 +87,28 @@ export async function GET(req: NextRequest) {
 
   if (query) {
     where.OR = [
+      { id: { contains: query, mode: "insensitive" } },
       { displayName: { contains: query, mode: "insensitive" } },
       { xHandle: { contains: query, mode: "insensitive" } },
       { phone: { contains: query } },
       { lineId: { contains: query, mode: "insensitive" } },
     ];
+  }
+
+  if (tier && tier !== "ALL") {
+    if (tier === "DIAMOND") {
+      where.OR = [{ tier: "DIAMOND" }, { tier: null, lifetimeStamps: { gte: 100 } }];
+    } else if (tier === "PLATINUM") {
+      where.OR = [{ tier: "PLATINUM" }, { tier: null, lifetimeStamps: { gte: 50, lt: 100 } }];
+    } else if (tier === "GOLD") {
+      where.OR = [{ tier: "GOLD" }, { tier: null, lifetimeStamps: { gte: 25, lt: 50 } }];
+    } else if (tier === "SILVER") {
+      where.OR = [{ tier: "SILVER" }, { tier: null, lifetimeStamps: { gte: 10, lt: 25 } }];
+    } else if (tier === "BRONZE") {
+      where.OR = [{ tier: "BRONZE" }, { tier: null, lifetimeStamps: { lt: 10 } }];
+    } else {
+      where.tier = tier;
+    }
   }
 
   let orderBy: Record<string, unknown> | Array<Record<string, unknown>> = { createdAt: "desc" };
@@ -139,39 +157,80 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { userId, amount, reason } = await req.json();
+  const { userId, amount = 0, reason, tier } = await req.json();
 
-  if (!userId || typeof amount !== "number") {
+  if (!userId) {
     return NextResponse.json({ error: "ข้อมูลไม่ถูกต้อง" }, { status: 400 });
   }
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  if (amount < 0 && user.stamps + amount < 0) {
+  if (typeof amount === "number" && amount < 0 && user.stamps + amount < 0) {
     return NextResponse.json(
       { error: `ไม่สามารถลดแต้มเกินจำนวนที่มีอยู่ได้ (ปัจจุบันมี ${user.stamps} แต้ม)` },
       { status: 400 }
     );
   }
 
-  const newStamps = Math.max(0, user.stamps + amount);
+  const safeAmount = typeof amount === "number" ? amount : 0;
+  const newStamps = Math.max(0, user.stamps + safeAmount);
+  const lifetimeInc = safeAmount > 0 ? safeAmount : 0;
+  const currentTierRaw = user.tier || "AUTO";
+  const requestedTierRaw = tier !== undefined && tier !== null ? String(tier).toUpperCase() : currentTierRaw;
+  const isTierChanging = requestedTierRaw !== currentTierRaw;
 
-  const [updatedUser] = await prisma.$transaction([
-    prisma.user.update({
+  const isAuto = requestedTierRaw === "AUTO";
+  const newTierValue = isAuto ? null : requestedTierRaw;
+  const tierUpdate = isTierChanging ? { tier: newTierValue } : {};
+  const tierConfig = !isAuto ? getMemberTier(newTierValue) : null;
+
+  const [updatedUser] = await prisma.$transaction(async (tx) => {
+    const updated = await tx.user.update({
       where: { id: userId },
       data: {
         stamps: newStamps,
+        ...(lifetimeInc > 0 ? { lifetimeStamps: { increment: lifetimeInc } } : {}),
+        ...tierUpdate,
       },
-    }),
-    prisma.pointLog.create({
-      data: {
-        userId: user.id,
-        amount,
-        reason: reason || "ปรับแต้มโดยแอดมิน",
-      },
-    }),
-  ]);
+    });
+
+    if (isTierChanging) {
+      const cleanReason =
+        reason &&
+        typeof reason === "string" &&
+        reason.trim() &&
+        reason.trim() !== "ปรับระดับสมาชิกโดยแอดมิน"
+          ? reason.trim()
+          : null;
+      const targetLabel = isAuto
+        ? "อัตโนมัติ (ตามแต้มสะสม)"
+        : tierConfig
+        ? tierConfig.label
+        : requestedTierRaw;
+      const logReason = `ปรับระดับสมาชิกเป็น ${targetLabel}${
+        cleanReason ? ` [หมายเหตุ: ${cleanReason}]` : ""
+      }`;
+
+      await tx.pointLog.create({
+        data: {
+          userId: user.id,
+          amount: safeAmount,
+          reason: logReason,
+        },
+      });
+    } else if (safeAmount !== 0) {
+      await tx.pointLog.create({
+        data: {
+          userId: user.id,
+          amount: safeAmount,
+          reason: reason || "ปรับแต้มโดยแอดมิน",
+        },
+      });
+    }
+
+    return [updated];
+  });
 
   return NextResponse.json({ success: true, user: updatedUser });
 }

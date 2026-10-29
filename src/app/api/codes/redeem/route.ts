@@ -123,6 +123,7 @@ export async function POST(request: NextRequest) {
           where: { id: decoded.user_id },
           data: {
             stamps: { increment: pointsToAdd },
+            lifetimeStamps: { increment: pointsToAdd },
           },
         });
         await tx.pointLog.create({

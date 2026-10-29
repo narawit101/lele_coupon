@@ -34,6 +34,16 @@ Core palette and complementary functional tokens.
 | **Error** | `#B01444` | `#FBEDED` | Rejected submissions, point deductions, destructive actions |
 | **Info** | `#315F91` | `#EDF3FA` | External links, informational tags |
 
+### Member Tier Badge Palette (Foreground · Surface · Border)
+
+| Tier | Min Points | Foreground | Surface | Border |
+|---|---|---|---|---|
+| **Bronze** | 0 | `#A05A2C` | `#FDF3EC` | `#F4D3C2` |
+| **Silver** | 5 | `#5E6977` | `#F1F4F8` | `#D8DEE6` |
+| **Gold** | 15 | `#B47D00` | `#FEF9E7` | `#FBE79E` |
+| **Platinum** | 30 | `#1A8282` | `#EBF8F8` | `#BCEAEA` |
+| **Diamond** | 50 | `#6B38FB` | `#F3EFFF` | `#D6C7FE` |
+
 ### Color Principles
 - Use **Cream** and **Cornflower** for distinct brand personality moments (e.g., member cards).
 - Anchor interactive controls with **Booking Blue** for high contrast and accessibility.
@@ -140,6 +150,17 @@ Intentional, minimal design that avoids visual clutter and redundant decorations
 - **Backdrop**: Unified `fixed inset-0 z-50 bg-[#25384C]/60 backdrop-blur-sm`.
 - **Dismissal**: Always support clicking the backdrop to dismiss the modal and reset form state.
 - **Scrolling Behavior**: Sticky header and pagination footer with middle section scroll (`flex-1 overflow-y-auto`).
+
+### 9. Member Tier System Tokens & Assets
+- **Tiers**: Bronze (0-4), Silver (5-14), Gold (15-29), Platinum (30-49), Diamond (50+).
+- **Physical Crest Assets**: Sliced transparent PNG assets in `public/tiers/`:
+  - `frame_<tier>.png`: Scaled to 115×106px overlaying the 56×56px avatar circle.
+  - `badge_<tier>.png`: Compact 16×16px / 18×18px crest positioned alongside user display names and admin table rows.
+- **Card Accents**: Tier border classes (`cardBorder`) and top gradient shimmer line (`cardAccent`).
+- **Separated Modals**:
+  - `AdjustStampsModal`: 100% focused on points adjustment (+ / -) with live balance preview and quick chips.
+  - `AdjustTierModal`: Dedicated tier management with live preview of selected crest and lifetime points.
+- **Table Controls**: Dual compact horizontal action buttons `[ ปรับแต้ม ]` (white/border) and `[ ปรับระดับ ]` (brand cream/accent) in the admin table's action column.
 
 ---
 

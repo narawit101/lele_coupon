@@ -24,13 +24,14 @@ Unlike generic loyalty apps or manual spreadsheet trackers, LELE' Ticket directl
 ## Capabilities and Constraints
 - **Capabilities**:
   - Frictionless LINE LIFF single sign-on with resilient singleton initialization (`initLiff`) and automatic OAuth URL parameter cleanup preventing token exchange errors.
-  - Digital member card displaying live stamp/point balances.
+  - Digital member card displaying live stamp/point balances, copyable Member ID, and real-time Member Tier badge (Bronze, Silver, Gold, Platinum, Diamond).
+  - Gamified member tier progression calculated automatically from lifetime points (EXP) without tier demotion upon reward redemption, alongside administrative manual VIP override.
   - Interactive reward exchange catalog with client-side pagination and prominent, unpill'd point cost typography (`text-base font-extrabold`).
   - Server-paginated queue pass wallet with status filters (`ALL`, `ACTIVE`, `USED`) and direct DM links.
   - Special campaign code redemption modal for instantaneous bonus point credits.
   - Mobile-native photo picker for review evidence submissions.
   - FinTech-grade point activity ledger without visual slop or duplicate approved entries.
-  - Administrative portal with forced password rotation, review verification, pass invalidation, special codes management, and manual point adjustments.
+  - Administrative portal with forced password rotation, review verification, pass invalidation, special codes management, and separate dedicated modals for manual point adjustments (`AdjustStampsModal`) and member tier management (`AdjustTierModal`) with dual action buttons `[ ปรับแต้ม ]` and `[ ปรับระดับ ]`.
   - Standardized tabular UI (`AdminDataTable<T>`) across 100% of admin views (`ReviewsTab`, `PassesTab`, `PromotionsTab`, `MembersTab`) with typed `ColumnDef`, animated skeleton loading, sorting chevrons, and built-in pagination.
   - Centralized admin API client (`adminFetch`) automatically managing session tokens and error handling.
   - Clean sub-tab architecture for Admin: Passes (`[ คูปองรางวัล ]` & `[ ประวัติใช้โค้ดพิเศษ ]`) and Promotions (`[ รายการโปรโมชั่น ]` & `[ โค้ดพิเศษ ]`).
