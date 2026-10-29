@@ -104,7 +104,7 @@ export default function AdminFilterBar({
               value={filterValue || ""}
               onChange={(val) => onFilterChange(val)}
               options={filterOptions}
-              className="min-w-[120px] sm:min-w-[140px]"
+              className="min-w-30 sm:min-w-35"
             />
           </div>
         )}

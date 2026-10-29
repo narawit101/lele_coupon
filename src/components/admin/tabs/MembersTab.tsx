@@ -230,9 +230,9 @@ export default function MembersTab({
           render: (m) => (
             <div className="flex items-center justify-end">
               {m.id !== adminProfile?.id &&
-                m.role !== "DEV" &&
-                (adminProfile?.role === "DEV" ||
-                  adminProfile?.role === "OWNER") ? (
+              m.role !== "DEV" &&
+              (adminProfile?.role === "DEV" ||
+                adminProfile?.role === "OWNER") ? (
                 <button
                   type="button"
                   onClick={() =>
@@ -307,7 +307,7 @@ export default function MembersTab({
 
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="leading-tight font-semibold text-[#25384C] block truncate max-w-[130px] sm:max-w-[160px]">
+                  <span className="leading-tight font-semibold text-[#25384C] block truncate max-w-32.5 sm:max-w-40">
                     {m.displayName}
                   </span>
                   <button
@@ -373,7 +373,9 @@ export default function MembersTab({
           return (
             <div className="flex flex-col">
               <div className="inline-flex items-center gap-1.5">
-                <span className="font-bold text-[#25384C] text-sm">{m.stamps}</span>{" "}
+                <span className="font-bold text-[#25384C] text-sm">
+                  {m.stamps}
+                </span>{" "}
                 <span className="text-slate-500 text-xs">แต้ม</span>
                 <button
                   type="button"

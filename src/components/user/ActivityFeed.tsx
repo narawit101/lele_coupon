@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import { ReviewSubmission, PointLog } from "@/types/user";
 import Pagination from "@/components/Pagination";
 import { formatThaiDateTime } from "@/lib/date";

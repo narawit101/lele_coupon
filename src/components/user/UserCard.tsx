@@ -54,7 +54,7 @@ export default function UserCard({
   return (
     <div className="space-y-2.5 sm:space-y-3 w-full">
       {/* 4:3 VIP Membership Card (100% distortion-free native aspect ratio on all screen sizes) */}
-      <div className="relative w-full aspect-[4/3] rounded-[22px] overflow-hidden transition-all duration-300 drop-shadow-md">
+      <div className="relative w-full aspect-4/3 rounded-[22px] overflow-hidden transition-all duration-300 drop-shadow-md">
         {/* VIP Card Frame & Surface */}
         {memberTier.cardFrameImage && (
           <div className="absolute inset-0 pointer-events-none z-0">
@@ -134,7 +134,7 @@ export default function UserCard({
 
               <div className="flex-1 min-w-0 pr-1">
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                  <h2 className="text-sm sm:text-base font-bold text-[#25384C] leading-snug truncate max-w-[120px] sm:max-w-[160px]">
+                  <h2 className="text-sm sm:text-base font-bold text-[#25384C] leading-snug truncate max-w-30 sm:max-w-40">
                     {user.displayName}
                   </h2>
                   <span
