@@ -5,10 +5,19 @@ import { ReviewSubmission, PointLog } from "@/types/user";
 import Pagination from "@/components/Pagination";
 import { formatThaiDateTime } from "@/lib/date";
 import { getMemberTier, MemberTier } from "@/lib/tier";
+import { ActivityCategory } from "./hooks/useUserActivities";
 
 export type HomeActivity =
   | { type: "REVIEW"; id: string; date: string; review: ReviewSubmission }
   | { type: "POINT_LOG"; id: string; date: string; log: PointLog };
+
+const CATEGORIES: { id: ActivityCategory; label: string }[] = [
+  { id: "ALL", label: "ทั้งหมด" },
+  { id: "REVIEWS", label: "รีวิว" },
+  { id: "PASSES", label: "ใช้สิทธิ์" },
+  { id: "POINTS", label: "ประวัติแต้ม" },
+  { id: "TIER", label: "เลื่อนขั้น" },
+];
 
 interface ActivityFeedProps {
   activities: HomeActivity[];
@@ -17,6 +26,8 @@ interface ActivityFeedProps {
   activityTotal: number;
   activityPage: number;
   activityTotalPages: number;
+  selectedCategory: ActivityCategory;
+  onCategoryChange: (category: ActivityCategory) => void;
   onPageChange: (newPage: number) => void;
   containerRef?: React.RefObject<HTMLDivElement | null>;
 }
@@ -28,15 +39,41 @@ export default function ActivityFeed({
   activityTotal,
   activityPage,
   activityTotalPages,
+  selectedCategory,
+  onCategoryChange,
   onPageChange,
   containerRef,
 }: ActivityFeedProps) {
   return (
-    <div ref={containerRef} className="pt-3 scroll-mt-20">
-      <div className="flex items-center justify-between pb-2 mb-1">
+    <div ref={containerRef} className="pt-2 scroll-mt-20">
+      <div className="flex items-center justify-between pb-2 mb-2">
         <h3 className="text-sm font-bold text-[#25384C]">
-          ประวัติกิจกรรมล่าสุด
+          ประวัติกิจกรรม
         </h3>
+        <span className="text-[11px] font-medium text-slate-400 font-latin">
+          {activityTotal} รายการ
+        </span>
+      </div>
+
+      {/* Horizontal Scrollable Category Pills */}
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth pb-3 -mx-1 px-1">
+        {CATEGORIES.map((cat) => {
+          const isActive = selectedCategory === cat.id;
+          return (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => onCategoryChange(cat.id)}
+              className={`shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition-all cursor-pointer select-none ${
+                isActive
+                  ? "bg-[#25384C] text-white font-semibold shadow-xs"
+                  : "bg-white text-slate-600 border border-[#D0DEF7] hover:border-[#25384C]/40 hover:text-[#25384C]"
+              }`}
+            >
+              {cat.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* History Lists */}
@@ -57,8 +94,8 @@ export default function ActivityFeed({
             ))}
           </div>
         ) : activities.length === 0 ? (
-          <div className="text-center py-8 text-xs text-slate-400 animate-in fade-in duration-200">
-            ยังไม่มีประวัติกิจกรรม
+          <div className="text-center py-8 text-xs text-slate-400 animate-in fade-in duration-200 bg-white/60 rounded-[14px] border border-dashed border-[#D0DEF7]">
+            ไม่พบรายการในหมวดหมู่นี้
           </div>
         ) : (
           <div
@@ -103,8 +140,9 @@ export default function ActivityFeed({
                 const pass = log.pass;
                 const isUsed = pass?.status === "USED";
                 const isTierChange = log.reason.startsWith(
-                  "ปรับระดับสมาชิกเป็น",
+                  "ปรับระดับสมาชิกเป็น"
                 );
+                const isAutoTier = isTierChange && log.reason.includes("อัตโนมัติ");
 
                 // Parse Tier Change Details if applicable
                 let tierTitle = "";
@@ -112,16 +150,22 @@ export default function ActivityFeed({
                 let tierConfig: ReturnType<typeof getMemberTier> | null = null;
 
                 if (isTierChange) {
-                  const match = log.reason.match(
-                    /ปรับระดับสมาชิกเป็น\s+([A-Za-z]+)(?:\s+\[หมายเหตุ:\s*(.*)\])?/,
-                  );
-                  if (match) {
-                    const rawTier = match[1].toUpperCase() as MemberTier;
-                    tierConfig = getMemberTier(rawTier);
-                    tierTitle = `ปรับระดับสมาชิกเป็น ${tierConfig.label}`;
-                    tierNote = match[2] ? `หมายเหตุ: ${match[2]}` : null;
+                  const noteMatch = log.reason.match(/\[หมายเหตุ:\s*(.*)\]/);
+                  tierNote = noteMatch ? `หมายเหตุ: ${noteMatch[1]}` : null;
+
+                  if (isAutoTier) {
+                    tierTitle = "ปรับระดับสมาชิกเป็น อัตโนมัติ (ตามแต้มสะสม)";
                   } else {
-                    tierTitle = log.reason;
+                    const tierMatch = log.reason.match(
+                      /ปรับระดับสมาชิกเป็น\s+([A-Za-z]+)/
+                    );
+                    if (tierMatch) {
+                      const rawTier = tierMatch[1].toUpperCase() as MemberTier;
+                      tierConfig = getMemberTier(rawTier);
+                      tierTitle = `ปรับระดับสมาชิกเป็น ${tierConfig.label}`;
+                    } else {
+                      tierTitle = log.reason.replace(/\s*\[หมายเหตุ:.*\]/, "");
+                    }
                   }
                 }
 
@@ -156,13 +200,23 @@ export default function ActivityFeed({
                       </p>
                     </div>
                     <div className="shrink-0 flex items-center justify-end text-right">
-                      {isTierChange && tierConfig ? (
-                        <span
-                          className={`inline-flex items-center gap-1 pl-2 pr-2 py-0.5 rounded-full text-[10px] font-bold font-latin border tracking-wide uppercase shadow-2xs ${tierConfig.bgColor} ${tierConfig.textColor} ${tierConfig.borderColor}`}
-                        >
-                          <span>{tierConfig.label}</span>
-                        </span>
-                      ) : log.amount === 0 ? (
+                      {isTierChange ? (
+                        isAutoTier ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border tracking-wide uppercase shadow-2xs bg-slate-100 text-[#25384C] border-slate-300 font-latin">
+                            AUTO
+                          </span>
+                        ) : tierConfig ? (
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold font-latin border tracking-wide uppercase shadow-2xs ${tierConfig.bgColor} ${tierConfig.textColor} ${tierConfig.borderColor}`}
+                          >
+                            <span>{tierConfig.label}</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border tracking-wide shadow-2xs bg-slate-100 text-[#25384C] border-slate-300">
+                            ปรับระดับ
+                          </span>
+                        )
+                      ) : pass || log.reason.includes("สิทธิ์") || log.reason.includes("แลก") ? (
                         <span
                           className={`text-xs font-bold ${
                             isUsed || log.reason.startsWith("ใช้สิทธิ์ลัดคิว")
@@ -181,7 +235,11 @@ export default function ActivityFeed({
                       ) : (
                         <span
                           className={`text-xs sm:text-sm font-bold font-latin ${
-                            log.amount > 0 ? "text-[#2D7058]" : "text-[#B01444]"
+                            log.amount > 0
+                              ? "text-[#2D7058]"
+                              : log.amount < 0
+                                ? "text-[#B01444]"
+                                : "text-slate-400"
                           }`}
                         >
                           {log.amount > 0 ? `+${log.amount}` : log.amount} แต้ม

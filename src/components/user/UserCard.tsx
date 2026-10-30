@@ -2,18 +2,16 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { toast } from "react-toastify";
 import {
   User as UserIcon,
   Gift,
   Ticket,
   RectangleEllipsis,
   RotateCw,
-  Copy,
-  Check,
 } from "lucide-react";
 import { getMemberTier } from "@/lib/tier";
 import { UserProfile } from "@/types/user";
+import CardDetailModal from "./modals/CardDetailModal";
 
 export interface UserCardProps {
   user: UserProfile;
@@ -34,27 +32,17 @@ export default function UserCard({
   onOpenPassWallet,
   onRedeemCode,
 }: UserCardProps) {
-  const [copiedId, setCopiedId] = useState(false);
-
-  const handleCopyId = () => {
-    if (!user.id) return;
-    navigator.clipboard.writeText(user.id);
-    setCopiedId(true);
-    toast.success("คัดลอก Member ID เรียบร้อยแล้ว");
-    setTimeout(() => setCopiedId(false), 2000);
-  };
-
-  const shortId =
-    user.id && user.id.length > 8
-      ? `#${user.id.slice(0, 4)}...${user.id.slice(-4)}`
-      : `#${user.id || ""}`;
+  const [showCardModal, setShowCardModal] = useState(false);
 
   const memberTier = getMemberTier(user.tier, user.lifetimeStamps, user.stamps);
 
   return (
     <div className="space-y-2.5 sm:space-y-3 w-full">
-      {/* 4:3 VIP Membership Card (100% distortion-free native aspect ratio on all screen sizes) */}
-      <div className="relative w-full aspect-4/3 rounded-[22px] overflow-hidden transition-all duration-300 drop-shadow-md">
+      {/* 4:3 VIP Membership Card (Tap to Expand into Luxury Full-Screen View) */}
+      <div
+        onClick={() => setShowCardModal(true)}
+        className="relative w-full aspect-4/3 rounded-[22px] overflow-hidden drop-shadow-md cursor-pointer select-none transition-transform active:scale-[0.99]"
+      >
         {/* VIP Card Frame & Surface */}
         {memberTier.cardFrameImage && (
           <div className="absolute inset-0 pointer-events-none z-0">
@@ -70,7 +58,7 @@ export default function UserCard({
           </div>
         )}
 
-        {/* Decorative Brand Watermark (Strictly clipped inside the card's inner safe boundary) */}
+        {/* Decorative Brand Watermark */}
         <div className="pointer-events-none select-none absolute inset-0 bottom-6 sm:bottom-8 right-6 sm:right-8 overflow-hidden z-1">
           <div className="absolute right-0 bottom-0 w-36 h-36 sm:w-44 sm:h-44 opacity-40 sm:opacity-45 overflow-hidden rounded-full">
             <Image
@@ -84,14 +72,13 @@ export default function UserCard({
           </div>
         </div>
 
-        {/* Card Content: 100% Proportional Responsive Safe Area (Scales in lockstep with 4:3 frame on all screens) */}
+        {/* Card Content: 100% Proportional Responsive Safe Area */}
         <div className="relative z-10 h-full px-[9%] sm:px-[10%] pt-[24.5%] sm:pt-[25%] pb-[14%] sm:pb-[14.5%] flex flex-col justify-between">
-          {/* Section 1: User Profile & Identity (100% clear of top crest) */}
+          {/* Section 1: User Profile & Identity */}
           <div className="flex items-start justify-between gap-2 sm:gap-3">
             <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
-              {/* Avatar Container with Badge Overlay */}
+              {/* Avatar Container with Tier Overlay */}
               <div className="relative shrink-0 flex items-center justify-center w-16 h-16 sm:w-18 sm:h-18">
-                {/* Avatar Photo specifically aligned to the transparent hole of the badge */}
                 <div
                   className="absolute rounded-full overflow-hidden bg-[#FAF8F2] z-0 shadow-inner"
                   style={{
@@ -116,7 +103,6 @@ export default function UserCard({
                   )}
                 </div>
 
-                {/* Member Tier Frame Overlay */}
                 {memberTier.frameImage && (
                   <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
                     <Image
@@ -143,6 +129,7 @@ export default function UserCard({
                     <span>{memberTier.label}</span>
                   </span>
                 </div>
+
                 <div className="mt-1 space-y-0.5 text-[10.5px] sm:text-xs text-slate-500">
                   <p className="flex items-center gap-1.5 truncate">
                     <span className="text-slate-400 font-medium shrink-0">
@@ -160,45 +147,30 @@ export default function UserCard({
                       {user.phone || "ยังไม่ได้ระบุ"}
                     </span>
                   </p>
-                  {user.id && (
-                    <div className="flex items-center gap-1.5 pt-0.5">
-                      <span className="text-slate-400 font-medium shrink-0">
-                        รหัสสมาชิก:
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleCopyId}
-                        title="คลิกเพื่อคัดลอก Member ID"
-                        className="inline-flex items-center gap-1 font-mono text-[9.5px] sm:text-[11px] font-semibold text-[#315F91] hover:text-[#25384C] bg-white/80 hover:bg-white px-1.5 py-0.5 rounded border border-[#D0DEF7] transition cursor-pointer shadow-2xs active:scale-95"
-                      >
-                        <span>{shortId}</span>
-                        {copiedId ? (
-                          <Check className="w-2.5 h-2.5 text-[#2D7058] shrink-0" />
-                        ) : (
-                          <Copy className="w-2.5 h-2.5 text-[#5284B7] shrink-0 opacity-70" />
-                        )}
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
 
-            {/* Refresh Button: Icon-only, inside safe content */}
+            {/* Refresh Button */}
             <button
               type="button"
-              onClick={onRefresh}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRefresh();
+              }}
               disabled={isRefreshing}
               title="รีเฟรชข้อมูล"
               className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-lg bg-white/85 hover:bg-white text-[#5284B7] hover:text-[#25384C] border border-[#D0DEF7] flex items-center justify-center transition cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50 mt-1"
             >
               <RotateCw
-                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshing ? "animate-spin" : ""}`}
+                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
+                  isRefreshing ? "animate-spin" : ""
+                }`}
               />
             </button>
           </div>
 
-          {/* Section 2: Points Summary (Lifted safely above the bottom-left crystal cluster) */}
+          {/* Section 2: Points Summary */}
           <div className="mt-auto pt-2 sm:pt-2.5 border-t border-[#25384C]/10 flex items-center justify-between pl-3.5 sm:pl-4">
             <div>
               <p className="text-[10px] sm:text-[11px] font-medium text-slate-500">
@@ -217,7 +189,7 @@ export default function UserCard({
         </div>
       </div>
 
-      {/* 3 Quick Action Cards: Independent 3-Card Grid directly below the 4:3 card */}
+      {/* 3 Quick Action Cards: Independent 3-Card Grid */}
       <div className="grid grid-cols-3 gap-1.5 sm:gap-2 w-full">
         <button
           type="button"
@@ -246,6 +218,13 @@ export default function UserCard({
           <span className="whitespace-nowrap truncate">กรอกโค้ด</span>
         </button>
       </div>
+
+      {/* Luxury Full-Screen Card Modal */}
+      <CardDetailModal
+        isOpen={showCardModal}
+        onClose={() => setShowCardModal(false)}
+        user={user}
+      />
     </div>
   );
 }

@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.max(1, parseInt(searchParams.get("limit") || "5", 10));
+    const category = searchParams.get("category") || "ALL";
 
     const [reviews, pointLogs, passes, redemptions] = await Promise.all([
       prisma.reviewSubmission.findMany({
@@ -67,11 +68,11 @@ export async function GET(request: NextRequest) {
         ...l,
         pass: matchedPass
           ? {
-              code: matchedPass.code,
-              status: matchedPass.status,
-              usedForConcert: matchedPass.usedForConcert,
-              usedAt: matchedPass.usedAt ? matchedPass.usedAt.toISOString() : null,
-            }
+            code: matchedPass.code,
+            status: matchedPass.status,
+            usedForConcert: matchedPass.usedForConcert,
+            usedAt: matchedPass.usedAt ? matchedPass.usedAt.toISOString() : null,
+          }
           : null,
       };
     });
@@ -91,11 +92,64 @@ export async function GET(request: NextRequest) {
       })),
     ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    const total = allActivities.length;
+    // Filter by Category
+    const filteredActivities = allActivities.filter((item) => {
+      if (category === "ALL" || !category) return true;
+
+      if (category === "REVIEWS") {
+        if (item.type === "REVIEW") return true;
+        if (item.type === "POINT_LOG") {
+          const r = item.log.reason;
+          return r.includes("รีวิว") || r.includes("อนุมัติรีวิว");
+        }
+        return false;
+      }
+
+      if (category === "PASSES") {
+        if (item.type === "POINT_LOG") {
+          const r = item.log.reason;
+          return (
+            Boolean(item.log.pass) ||
+            r.includes("แลกโปรโมชั่น") ||
+            r.includes("ใช้สิทธิ์") ||
+            r.toLowerCase().includes("pass")
+          );
+        }
+        return false;
+      }
+
+      if (category === "TIER") {
+        if (item.type === "POINT_LOG") {
+          const r = item.log.reason;
+          return r.startsWith("ปรับระดับสมาชิกเป็น") || r.includes("ระดับสมาชิก");
+        }
+        return false;
+      }
+
+      if (category === "POINTS") {
+        if (item.type === "POINT_LOG") {
+          const r = item.log.reason;
+          const isReview = r.includes("รีวิว") || r.includes("อนุมัติรีวิว");
+          const isPass =
+            Boolean(item.log.pass) ||
+            r.includes("แลกโปรโมชั่น") ||
+            r.includes("ใช้สิทธิ์") ||
+            r.toLowerCase().includes("pass");
+          const isTier =
+            r.startsWith("ปรับระดับสมาชิกเป็น") || r.includes("ระดับสมาชิก");
+          return !isReview && !isPass && !isTier;
+        }
+        return false;
+      }
+
+      return true;
+    });
+
+    const total = filteredActivities.length;
     const totalPages = Math.ceil(total / limit) || 1;
     const safePage = Math.max(1, Math.min(page, totalPages));
     const startIndex = (safePage - 1) * limit;
-    const paginated = allActivities.slice(startIndex, startIndex + limit);
+    const paginated = filteredActivities.slice(startIndex, startIndex + limit);
 
     return NextResponse.json({
       activities: paginated,

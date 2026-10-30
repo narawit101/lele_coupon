@@ -6,12 +6,15 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { MANUAL_LOGOUT_KEY } from "@/lib/auth-session";
 import { toast } from "react-toastify";
-import { UserCog, LogOut, MessageSquarePlus } from "lucide-react";
+import { MessageSquarePlus } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import ProfileDropdown from "@/components/ProfileDropdown";
+import ConfirmModal from "@/components/admin/modals/ConfirmModal";
 import {
   UserCard,
   ActivityFeed,
+  BottomNav,
+  UserNavTab,
+  SettingsView,
   useUserActivities,
   useUserPasses,
   useUserPromotions,
@@ -26,20 +29,24 @@ export default function HomePage() {
   const router = useRouter();
   const { userData: user, token, isLoad, logout, refreshUserData } = useUser();
 
+  const [activeTab, setActiveTab] = useState<UserNavTab>("HOME");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showRedeemCodeModal, setShowRedeemCodeModal] = useState(false);
+  const [showLogoutConfirmModal, setShowLogoutConfirmModal] = useState(false);
 
   // Domain Hooks
   const {
     activities,
+    category,
     activityPage,
     activityTotalPages,
     activityTotal,
     activityLoading,
     activitySectionRef,
     fetchActivities,
+    handleCategoryChange,
     handleActivityPageChange,
   } = useUserActivities({ token });
 
@@ -94,6 +101,18 @@ export default function HomePage() {
     }
   };
 
+  // Logout handler
+  const handleConfirmLogout = () => {
+    try {
+      if (liff.isLoggedIn()) liff.logout();
+    } catch {
+      // LIFF may not have been initialized
+    }
+    logout();
+    sessionStorage.setItem(MANUAL_LOGOUT_KEY, "1");
+    router.replace("/login");
+  };
+
   // Auth protection guard
   useEffect(() => {
     if (!isLoad) return;
@@ -135,11 +154,10 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-full bg-[#D0DEF7]/50" />
-              <div className="w-9 h-9 rounded-full bg-[#D0DEF7]/50" />
             </div>
           </div>
         </header>
-        <main className="max-w-lg mx-auto px-4 pt-4 space-y-4">
+        <main className="max-w-lg mx-auto px-4 pt-4 pb-20 space-y-4">
           <div className="rounded-[20px] p-5 border border-[#D0DEF7] bg-white h-48" />
           <div className="w-full h-11 bg-[#25384C]/15 rounded-xl" />
           <div className="rounded-2xl p-4 border border-[#D0DEF7] bg-white h-64" />
@@ -150,80 +168,70 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#FAF8F2] text-[#25384C]">
-      {/* Top Header */}
-      <Navbar
-        title="LELE' Ticket"
-        subtitle="#เลอเล่อรับกดบัตร"
-        actions={
-          <ProfileDropdown
-            name={user.displayName}
-            avatarUrl={user.avatarUrl}
-            subtitle={
-              user.xHandle ? `@${user.xHandle}` : user.phone || "สมาชิกทั่วไป"
-            }
-            title="เมนูโปรไฟล์"
-            items={[
-              {
-                id: "edit-profile",
-                label: "แก้ไขข้อมูลส่วนตัว",
-                icon: UserCog,
-                onClick: () => setShowProfileModal(true),
-              },
-              {
-                id: "logout",
-                label: "ออกจากระบบ",
-                icon: LogOut,
-                isDanger: true,
-                dividerAbove: true,
-                onClick: () => {
-                  try {
-                    if (liff.isLoggedIn()) liff.logout();
-                  } catch {
-                    // LIFF may not have been initialized
-                  }
-                  logout();
-                  sessionStorage.setItem(MANUAL_LOGOUT_KEY, "1");
-                  router.replace("/login");
-                },
-              },
-            ]}
+      {/* Top Header without dropdown */}
+      <Navbar title="LELE' Ticket" subtitle="#เลอเล่อรับกดบัตร" />
+
+      {/* Main Container */}
+      <main className="max-w-lg mx-auto px-4 py-3 pb-24">
+        {activeTab === "HOME" ? (
+          <div className="space-y-4 animate-in fade-in duration-150">
+            {/* User Card */}
+            <UserCard
+              user={user}
+              isRefreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              onExchangeReward={() => setShowExchangeModal(true)}
+              onOpenPassWallet={handleOpenPassModal}
+              onRedeemCode={() => setShowRedeemCodeModal(true)}
+            />
+
+            {/* Primary Action Button: Send Review */}
+            <button
+              type="button"
+              onClick={() => setShowReviewModal(true)}
+              className="w-full min-h-11 px-4 bg-[#25384C] hover:bg-[#1B2938] text-white font-semibold rounded-xl shadow-lg shadow-[#25384C]/20 flex items-center justify-center gap-2 transition-all active:scale-[0.99] cursor-pointer"
+            >
+              <MessageSquarePlus className="w-4 h-4 shrink-0" />
+              <span>ส่งรีวิวขอรับแต้มสะสม</span>
+            </button>
+
+            {/* Categorized Activities Section */}
+            <ActivityFeed
+              activities={activities}
+              activityLoading={activityLoading}
+              isRefreshing={isRefreshing}
+              activityTotal={activityTotal}
+              activityPage={activityPage}
+              activityTotalPages={activityTotalPages}
+              selectedCategory={category}
+              onCategoryChange={handleCategoryChange}
+              onPageChange={handleActivityPageChange}
+              containerRef={activitySectionRef}
+            />
+          </div>
+        ) : (
+          <SettingsView
+            user={user}
+            onEditProfile={() => setShowProfileModal(true)}
+            onRequestLogout={() => setShowLogoutConfirmModal(true)}
           />
-        }
-      />
-
-      <main className="max-w-lg mx-auto px-4 py-2 space-y-4">
-        {/* User Card */}
-        <UserCard
-          user={user}
-          isRefreshing={isRefreshing}
-          onRefresh={handleRefresh}
-          onExchangeReward={() => setShowExchangeModal(true)}
-          onOpenPassWallet={handleOpenPassModal}
-          onRedeemCode={() => setShowRedeemCodeModal(true)}
-        />
-
-        {/* Primary Action Button: Send Review */}
-        <button
-          type="button"
-          onClick={() => setShowReviewModal(true)}
-          className="w-full min-h-11 px-4 bg-[#25384C] hover:bg-[#1B2938] text-white font-semibold rounded-xl shadow-lg shadow-[#25384C]/20 flex items-center justify-center gap-2 transition-all active:scale-[0.99] cursor-pointer"
-        >
-          <MessageSquarePlus className="w-4 h-4 shrink-0" />
-          <span>ส่งรีวิวขอรับแต้มสะสม</span>
-        </button>
-
-        {/* Recent Activities Section */}
-        <ActivityFeed
-          activities={activities}
-          activityLoading={activityLoading}
-          isRefreshing={isRefreshing}
-          activityTotal={activityTotal}
-          activityPage={activityPage}
-          activityTotalPages={activityTotalPages}
-          onPageChange={handleActivityPageChange}
-          containerRef={activitySectionRef}
-        />
+        )}
       </main>
+
+      {/* Bottom Navigation Dock */}
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* Logout Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showLogoutConfirmModal}
+        onClose={() => setShowLogoutConfirmModal(false)}
+        title="ยืนยันการออกจากระบบ"
+        message="คุณต้องการออกจากระบบบัญชีสมาชิกนี้ใช่หรือไม่?"
+        confirmText="ออกจากระบบ"
+        cancelText="ยกเลิก"
+        isDestructive
+        onConfirm={handleConfirmLogout}
+      />
 
       {/* Direct Modals Rendering */}
       <ReviewModal
