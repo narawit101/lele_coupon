@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getMemberTier } from "@/lib/tier";
+import { getMemberTier, calculateTierFromPoints, TIER_CONFIGS } from "@/lib/tier";
 import { getAdminFromRequest } from "@/lib/admin-auth";
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "lele_admin_2026";
@@ -198,19 +198,21 @@ export async function POST(req: NextRequest) {
     if (isTierChanging) {
       const cleanReason =
         reason &&
-        typeof reason === "string" &&
-        reason.trim() &&
-        reason.trim() !== "ปรับระดับสมาชิกโดยแอดมิน"
+          typeof reason === "string" &&
+          reason.trim() &&
+          reason.trim() !== "ปรับระดับสมาชิกโดยแอดมิน"
           ? reason.trim()
           : null;
+      const autoCalculatedTier = isAuto
+        ? calculateTierFromPoints(Math.max(updated.lifetimeStamps, updated.stamps))
+        : null;
       const targetLabel = isAuto
-        ? "อัตโนมัติ (ตามแต้มสะสม)"
-        : tierConfig
-        ? tierConfig.label
-        : requestedTierRaw;
-      const logReason = `ปรับระดับสมาชิกเป็น ${targetLabel}${
-        cleanReason ? ` [หมายเหตุ: ${cleanReason}]` : ""
-      }`;
+          ? `อัตโนมัติ (${autoCalculatedTier ? TIER_CONFIGS[autoCalculatedTier].label : "ตามแต้มสะสม"})`
+          : tierConfig
+            ? tierConfig.label
+            : requestedTierRaw;
+      const logReason = `ปรับระดับสมาชิกเป็น ${targetLabel}${cleanReason ? ` [หมายเหตุ: ${cleanReason}]` : ""
+        }`;
 
       await tx.pointLog.create({
         data: {

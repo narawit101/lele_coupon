@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { ReviewSubmission, PointLog } from "@/types/user";
+import Image from "next/image";
+import { ReviewSubmission, PointLog, UserProfile } from "@/types/user";
 import Pagination from "@/components/Pagination";
 import { formatThaiDateTime } from "@/lib/date";
 import { getMemberTier, MemberTier } from "@/lib/tier";
@@ -30,6 +31,7 @@ interface ActivityFeedProps {
   onCategoryChange: (category: ActivityCategory) => void;
   onPageChange: (newPage: number) => void;
   containerRef?: React.RefObject<HTMLDivElement | null>;
+  currentUser?: UserProfile | null;
 }
 
 export default function ActivityFeed({
@@ -43,13 +45,12 @@ export default function ActivityFeed({
   onCategoryChange,
   onPageChange,
   containerRef,
+  currentUser,
 }: ActivityFeedProps) {
   return (
     <div ref={containerRef} className="pt-2 scroll-mt-20">
       <div className="flex items-center justify-between pb-2 mb-2">
-        <h3 className="text-sm font-bold text-[#25384C]">
-          ประวัติกิจกรรม
-        </h3>
+        <h3 className="text-sm font-bold text-[#25384C]">ประวัติกิจกรรม</h3>
         <span className="text-[11px] font-medium text-slate-400 font-latin">
           {activityTotal} รายการ
         </span>
@@ -140,9 +141,10 @@ export default function ActivityFeed({
                 const pass = log.pass;
                 const isUsed = pass?.status === "USED";
                 const isTierChange = log.reason.startsWith(
-                  "ปรับระดับสมาชิกเป็น"
+                  "ปรับระดับสมาชิกเป็น",
                 );
-                const isAutoTier = isTierChange && log.reason.includes("อัตโนมัติ");
+                const isAutoTier =
+                  isTierChange && log.reason.includes("อัตโนมัติ");
 
                 // Parse Tier Change Details if applicable
                 let tierTitle = "";
@@ -154,10 +156,20 @@ export default function ActivityFeed({
                   tierNote = noteMatch ? `หมายเหตุ: ${noteMatch[1]}` : null;
 
                   if (isAutoTier) {
-                    tierTitle = "ปรับระดับสมาชิกเป็น อัตโนมัติ (ตามแต้มสะสม)";
+                    const autoTierMatch = log.reason.match(
+                      /อัตโนมัติ\s*\(([A-Za-z]+)\)/,
+                    );
+                    if (autoTierMatch) {
+                      tierConfig = getMemberTier(
+                        autoTierMatch[1].toUpperCase() as MemberTier,
+                      );
+                    } else {
+                      tierConfig = getMemberTier(currentUser);
+                    }
+                    tierTitle = `เลื่อนขั้นอัตโนมัติ (${tierConfig.label})`;
                   } else {
                     const tierMatch = log.reason.match(
-                      /ปรับระดับสมาชิกเป็น\s+([A-Za-z]+)/
+                      /ปรับระดับสมาชิกเป็น\s+([A-Za-z]+)/,
                     );
                     if (tierMatch) {
                       const rawTier = tierMatch[1].toUpperCase() as MemberTier;
@@ -201,22 +213,29 @@ export default function ActivityFeed({
                     </div>
                     <div className="shrink-0 flex items-center justify-end text-right">
                       {isTierChange ? (
-                        isAutoTier ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border tracking-wide uppercase shadow-2xs bg-slate-100 text-[#25384C] border-slate-300 font-latin">
-                            AUTO
-                          </span>
-                        ) : tierConfig ? (
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold font-latin border tracking-wide uppercase shadow-2xs ${tierConfig.bgColor} ${tierConfig.textColor} ${tierConfig.borderColor}`}
+                        tierConfig?.frameImage ? (
+                          <div
+                            className="relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center"
+                            title={tierConfig.label}
                           >
-                            <span>{tierConfig.label}</span>
-                          </span>
+                            <Image
+                              src={tierConfig.frameImage}
+                              alt={tierConfig.label}
+                              width={40}
+                              height={40}
+                              unoptimized
+                              priority
+                              className="w-full h-full object-contain pointer-events-none select-none drop-shadow-2xs"
+                            />
+                          </div>
                         ) : (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border tracking-wide shadow-2xs bg-slate-100 text-[#25384C] border-slate-300">
                             ปรับระดับ
                           </span>
                         )
-                      ) : pass || log.reason.includes("สิทธิ์") || log.reason.includes("แลก") ? (
+                      ) : pass ||
+                        log.reason.includes("สิทธิ์") ||
+                        log.reason.includes("แลก") ? (
                         <span
                           className={`text-xs font-bold ${
                             isUsed || log.reason.startsWith("ใช้สิทธิ์ลัดคิว")

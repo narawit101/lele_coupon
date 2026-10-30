@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "lele_ticket_jwt_secret_2026";
+import { createUserToken } from "@/lib/user-auth";
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     const hasCustomAvatar =
       Boolean(existingUser?.avatarUrl &&
-      existingUser.avatarUrl.includes("res.cloudinary.com"));
+        existingUser.avatarUrl.includes("res.cloudinary.com"));
 
     // Auto-register/upsert user with LINE profile (preserve custom avatar)
     const user = await prisma.user.upsert({
@@ -44,15 +42,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Generate JWT Token (like drivecare)
-    const token = jwt.sign(
-      {
-        user_id: user.id,
-        line_id: user.lineId,
-      },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    // Generate JWT Token
+    const token = createUserToken(user.id, user.lineId);
 
     return NextResponse.json(
       {

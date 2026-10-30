@@ -38,11 +38,7 @@ export default function AdjustTierModal({
 }: AdjustTierModalProps) {
   if (!user) return null;
 
-  const currentTier = getMemberTier(
-    user.tier,
-    user.lifetimeStamps,
-    user.stamps,
-  );
+  const currentTier = getMemberTier(user);
   const isAutoMode = !user.tier || user.tier === "AUTO";
   const isChangingTier = adjustTier !== (user.tier || "AUTO");
   const disabled = submitting || !isChangingTier;

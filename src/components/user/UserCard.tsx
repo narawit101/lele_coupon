@@ -33,14 +33,24 @@ export default function UserCard({
   onRedeemCode,
 }: UserCardProps) {
   const [showCardModal, setShowCardModal] = useState(false);
+  const [sourceRect, setSourceRect] = useState<DOMRect | null>(null);
+  const cardRef = React.useRef<HTMLDivElement>(null);
 
-  const memberTier = getMemberTier(user.tier, user.lifetimeStamps, user.stamps);
+  const handleOpenCard = () => {
+    if (cardRef.current) {
+      setSourceRect(cardRef.current.getBoundingClientRect());
+    }
+    setShowCardModal(true);
+  };
+
+  const memberTier = getMemberTier(user);
 
   return (
     <div className="space-y-2.5 sm:space-y-3 w-full">
       {/* 4:3 VIP Membership Card (Tap to Expand into Luxury Full-Screen View) */}
       <div
-        onClick={() => setShowCardModal(true)}
+        ref={cardRef}
+        onClick={handleOpenCard}
         className="relative w-full aspect-4/3 rounded-[22px] overflow-hidden drop-shadow-md cursor-pointer select-none transition-transform active:scale-[0.99]"
       >
         {/* VIP Card Frame & Surface */}
@@ -224,6 +234,7 @@ export default function UserCard({
         isOpen={showCardModal}
         onClose={() => setShowCardModal(false)}
         user={user}
+        sourceRect={sourceRect}
       />
     </div>
   );

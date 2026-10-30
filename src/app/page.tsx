@@ -207,6 +207,7 @@ export default function HomePage() {
               onCategoryChange={handleCategoryChange}
               onPageChange={handleActivityPageChange}
               containerRef={activitySectionRef}
+              currentUser={user}
             />
           </div>
         ) : (

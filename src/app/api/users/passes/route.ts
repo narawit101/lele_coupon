@@ -1,25 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "lele_ticket_jwt_secret_2026";
-
-function getUserIdFromToken(request: NextRequest): string | null {
-  const authHeader = request.headers.get("authorization");
-  const token = authHeader?.replace("Bearer ", "");
-  if (!token) return null;
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { user_id: string };
-    return decoded.user_id || null;
-  } catch {
-    return null;
-  }
-}
+import { getUserIdFromRequest } from "@/lib/user-auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = getUserIdFromToken(request);
+    const userId = getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }

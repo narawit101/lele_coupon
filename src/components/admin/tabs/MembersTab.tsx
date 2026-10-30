@@ -260,7 +260,7 @@ export default function MembersTab({
         sortable: true,
         className: "font-semibold text-[#25384C] whitespace-nowrap",
         render: (m) => {
-          const t = getMemberTier(m.tier, m.lifetimeStamps, m.stamps);
+          const t = getMemberTier(m);
           return (
             <div className="flex items-center gap-2.5">
               {/* Avatar with Tier Frame Overlay (Enlarged to 40px for crystal-clear avatar visibility) */}

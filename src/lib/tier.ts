@@ -128,20 +128,39 @@ export function calculateTierFromPoints(points: number): MemberTier {
   return "BRONZE";
 }
 
+export interface UserTierInput {
+  tier?: string | null;
+  lifetimeStamps?: number;
+  stamps?: number;
+}
+
 /**
  * ดึงระดับสมาชิก (Member Tier)
+ * - รองรับทั้งการส่ง User object โดยตรง { tier, lifetimeStamps, stamps } หรือส่งพารามิเตอร์แยก
  * - หากระบุ tier แบบแมนนวล (Manual Override) และตรงกับระดับ ให้ใช้ค่านั้น
  * - หากเป็น null, undefined หรือ "AUTO" ให้คำนวณอัตโนมัติจากแต้มสะสมทั้งหมด (lifetimeStamps หรือ stamps)
  */
 export function getMemberTier(
-  tier?: string | null,
+  userOrTier?: UserTierInput | string | null,
   lifetimeStamps?: number,
   stamps?: number
 ): TierConfig {
-  if (tier && tier !== "AUTO" && tier in TIER_CONFIGS) {
-    return TIER_CONFIGS[tier as MemberTier];
+    let tierVal: string | null | undefined;
+    let ltVal: number | undefined = lifetimeStamps;
+    let stVal: number | undefined = stamps;
+
+    if (typeof userOrTier === "object" && userOrTier !== null) {
+      tierVal = userOrTier.tier;
+      ltVal = userOrTier.lifetimeStamps;
+      stVal = userOrTier.stamps;
+    } else {
+      tierVal = userOrTier;
+    }
+
+    if (tierVal && tierVal !== "AUTO" && tierVal in TIER_CONFIGS) {
+      return TIER_CONFIGS[tierVal as MemberTier];
+    }
+    const effectivePoints = Math.max(ltVal ?? 0, stVal ?? 0);
+    const calculatedTier = calculateTierFromPoints(effectivePoints);
+    return TIER_CONFIGS[calculatedTier];
   }
-  const effectivePoints = Math.max(lifetimeStamps ?? 0, stamps ?? 0);
-  const calculatedTier = calculateTierFromPoints(effectivePoints);
-  return TIER_CONFIGS[calculatedTier];
-}
