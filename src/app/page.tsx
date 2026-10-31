@@ -9,12 +9,14 @@ import { toast } from "react-toastify";
 import { MessageSquarePlus } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ConfirmModal from "@/components/admin/modals/ConfirmModal";
+import { ReviewSubmission } from "@/types/user";
 import {
   UserCard,
   ActivityFeed,
   BottomNav,
   UserNavTab,
   SettingsView,
+  WalletView,
   useUserActivities,
   useUserPasses,
   useUserPromotions,
@@ -32,6 +34,9 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState<UserNavTab>("HOME");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [resubmitReview, setResubmitReview] = useState<ReviewSubmission | null>(
+    null,
+  );
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showRedeemCodeModal, setShowRedeemCodeModal] = useState(false);
   const [showLogoutConfirmModal, setShowLogoutConfirmModal] = useState(false);
@@ -157,7 +162,7 @@ export default function HomePage() {
             </div>
           </div>
         </header>
-        <main className="max-w-lg mx-auto px-4 pt-4 pb-20 space-y-4">
+        <main className="max-w-lg mx-auto px-4 pt-4 pb-20 space-y-4 outline-none focus:outline-none">
           <div className="rounded-[20px] p-5 border border-[#D0DEF7] bg-white h-48" />
           <div className="w-full h-11 bg-[#25384C]/15 rounded-xl" />
           <div className="rounded-2xl p-4 border border-[#D0DEF7] bg-white h-64" />
@@ -172,23 +177,23 @@ export default function HomePage() {
       <Navbar title="LELE' Ticket" subtitle="#เลอเล่อรับกดบัตร" />
 
       {/* Main Container */}
-      <main className="max-w-lg mx-auto px-4 py-3 pb-24">
-        {activeTab === "HOME" ? (
-          <div className="space-y-4 animate-in fade-in duration-150">
+      <main className="max-w-lg mx-auto px-4 py-3 pb-32 sm:pb-36 outline-none focus:outline-none">
+        {activeTab === "HOME" && (
+          <div className="space-y-4 outline-none focus:outline-none">
             {/* User Card */}
             <UserCard
               user={user}
               isRefreshing={isRefreshing}
               onRefresh={handleRefresh}
-              onExchangeReward={() => setShowExchangeModal(true)}
-              onOpenPassWallet={handleOpenPassModal}
-              onRedeemCode={() => setShowRedeemCodeModal(true)}
             />
 
             {/* Primary Action Button: Send Review */}
             <button
               type="button"
-              onClick={() => setShowReviewModal(true)}
+              onClick={() => {
+                setResubmitReview(null);
+                setShowReviewModal(true);
+              }}
               className="w-full min-h-11 px-4 bg-[#25384C] hover:bg-[#1B2938] text-white font-semibold rounded-xl shadow-lg shadow-[#25384C]/20 flex items-center justify-center gap-2 transition-all active:scale-[0.99] cursor-pointer"
             >
               <MessageSquarePlus className="w-4 h-4 shrink-0" />
@@ -208,9 +213,31 @@ export default function HomePage() {
               onPageChange={handleActivityPageChange}
               containerRef={activitySectionRef}
               currentUser={user}
+              onResubmitReview={(rev) => {
+                setResubmitReview(rev);
+                setShowReviewModal(true);
+              }}
             />
           </div>
-        ) : (
+        )}
+
+        {activeTab === "WALLET" && (
+          <WalletView
+            passes={userPasses}
+            total={passesTotal}
+            page={passesPage}
+            totalPages={passesTotalPages}
+            status={passesStatus}
+            counts={passCounts}
+            isLoading={passesLoading}
+            onStatusChange={handlePassStatusChange}
+            onPageChange={handlePassPageChange}
+            onExchangeReward={() => setShowExchangeModal(true)}
+            onRedeemCode={() => setShowRedeemCodeModal(true)}
+          />
+        )}
+
+        {activeTab === "SETTINGS" && (
           <SettingsView
             user={user}
             onEditProfile={() => setShowProfileModal(true)}
@@ -220,7 +247,11 @@ export default function HomePage() {
       </main>
 
       {/* Bottom Navigation Dock */}
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        activePassCount={passCounts.active}
+      />
 
       {/* Logout Confirmation Modal */}
       <ConfirmModal
@@ -237,9 +268,13 @@ export default function HomePage() {
       {/* Direct Modals Rendering */}
       <ReviewModal
         isOpen={showReviewModal}
-        onClose={() => setShowReviewModal(false)}
+        onClose={() => {
+          setShowReviewModal(false);
+          setResubmitReview(null);
+        }}
         userId={user.id}
         defaultXHandle={user.xHandle || ""}
+        initialData={resubmitReview}
         onSuccess={async () => {
           await refreshUserData();
           fetchActivities(1);

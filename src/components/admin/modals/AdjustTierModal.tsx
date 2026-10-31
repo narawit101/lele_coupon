@@ -18,12 +18,12 @@ export interface AdjustTierModalProps {
 }
 
 const TIER_OPTIONS: { value: MemberTier | "AUTO"; label: string }[] = [
-  { value: "AUTO", label: "อัตโนมัติ (คำนวณตามแต้มสะสม)" },
-  { value: "BRONZE", label: "Bronze (0+ แต้ม)" },
-  { value: "SILVER", label: "Silver (10+ แต้ม)" },
-  { value: "GOLD", label: "Gold (25+ แต้ม)" },
-  { value: "PLATINUM", label: "Platinum (50+ แต้ม)" },
-  { value: "DIAMOND", label: "Diamond (100+ แต้ม)" },
+  { value: "AUTO", label: "อัตโนมัติ (AUTO)" },
+  { value: "BRONZE", label: "Bronze" },
+  { value: "SILVER", label: "Silver" },
+  { value: "GOLD", label: "Gold" },
+  { value: "PLATINUM", label: "Platinum" },
+  { value: "DIAMOND", label: "Diamond" },
 ];
 
 export default function AdjustTierModal({

@@ -61,7 +61,7 @@ export default function InspectReviewModal({
             </div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500 mt-0.5">
               <span className="font-medium text-slate-700">
-                ลูกค้า: {review.user.displayName}
+                {review.user.displayName}
               </span>
               {(review.xHandle || review.user.xHandle) && (
                 <span className="text-slate-400 font-latin">
@@ -98,11 +98,13 @@ export default function InspectReviewModal({
 
         {/* Reject reason note (if rejected) */}
         {review.status === "REJECTED" && review.rejectReason && (
-          <div className="px-4 py-2 bg-[#FAF8F2] border-b border-[#D0DEF7]/60 text-xs text-slate-700 flex items-center gap-1.5 shrink-0">
-            <span className="font-semibold shrink-0 text-[#25384C]">
-              เหตุผลที่ไม่อนุมัติ:
+          <div className="px-4 py-2.5 bg-[#FAF8F2] border-b border-[#D0DEF7]/60 text-xs text-slate-700 flex items-start gap-2 shrink-0">
+            <span className="font-semibold shrink-0 text-[#B01444]">
+              เหตุผล:
             </span>
-            <span className="truncate">{review.rejectReason}</span>
+            <span className="wrap-break-word leading-relaxed text-slate-700 font-medium">
+              {review.rejectReason}
+            </span>
           </div>
         )}
 

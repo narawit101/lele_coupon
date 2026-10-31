@@ -81,7 +81,7 @@ export default function AdminSelect<T extends string = string>({
         onChange(options[prevIndex].value);
       }
     },
-    [disabled, isOpen, options, value, onChange]
+    [disabled, isOpen, options, value, onChange],
   );
 
   const selectedOption = options.find((opt) => opt.value === value);
@@ -90,7 +90,7 @@ export default function AdminSelect<T extends string = string>({
     <div
       ref={containerRef}
       onKeyDown={handleKeyDown}
-      className={`relative inline-block text-left ${className}`}
+      className={`relative ${className.includes("w-full") ? "w-full" : "inline-block"} text-left ${className}`}
     >
       {/* Trigger Button */}
       <button
@@ -168,4 +168,3 @@ export default function AdminSelect<T extends string = string>({
     </div>
   );
 }
-

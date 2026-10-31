@@ -37,6 +37,9 @@ export interface AdminPromotion {
   title: string;
   points: number;
   description?: string;
+  quota?: number | null;
+  maxPerUser?: number | null;
+  expiresAt?: string | null;
   isActive: boolean;
   createdAt: string;
   _count?: { passes: number };
@@ -61,6 +64,10 @@ export interface AdminPass {
   id: string;
   code: string;
   rewardTitle?: string;
+  promotionId?: string | null;
+  promotion?: {
+    points: number;
+  } | null;
   status: "ACTIVE" | "USED";
   usedAt?: string;
   usedForConcert?: string;

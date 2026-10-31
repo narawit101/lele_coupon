@@ -11,6 +11,12 @@ export interface ReviewModalProps {
   onClose: () => void;
   userId: string;
   defaultXHandle?: string;
+  initialData?: {
+    concertName?: string;
+    xHandle?: string;
+    postUrl?: string | null;
+    imageUrl?: string | null;
+  } | null;
   onSuccess: () => Promise<void> | void;
 }
 
@@ -19,6 +25,7 @@ export default function ReviewModal({
   onClose,
   userId,
   defaultXHandle = "",
+  initialData,
   onSuccess,
 }: ReviewModalProps) {
   const [reviewConcert, setReviewConcert] = useState("");
@@ -31,10 +38,14 @@ export default function ReviewModal({
   useEffect(() => {
     if (isOpen) {
       queueMicrotask(() => {
-        setReviewXHandle(defaultXHandle);
+        setReviewConcert(initialData?.concertName || "");
+        setReviewXHandle(initialData?.xHandle || defaultXHandle);
+        setReviewPostUrl(initialData?.postUrl || "");
+        setReviewImage(initialData?.imageUrl || null);
+        setReviewFile(null);
       });
     }
-  }, [isOpen, defaultXHandle]);
+  }, [isOpen, defaultXHandle, initialData]);
 
   if (!isOpen) return null;
 
@@ -128,7 +139,7 @@ export default function ReviewModal({
     <BaseModal
       isOpen={isOpen}
       onClose={handleClose}
-      title="ส่งรีวิวขอรับแต้มสะสม"
+      title={initialData ? "แก้ไขและส่งรีวิวใหม่" : "ส่งรีวิวขอรับแต้มสะสม"}
       maxWidth="max-w-md"
       closeDisabled={submittingReview}
     >

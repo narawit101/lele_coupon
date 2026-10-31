@@ -59,6 +59,9 @@ model Promotion {
   title       String      // e.g. "สิทธิ์ลัดคิว 1 งาน", "ส่วนลดค่ากด 50 บาท"
   points      Int         // e.g. 3, 5, 10
   description String?     // e.g. "ใช้ได้กับคอนเสิร์ตทุกงาน แจ้งทาง DM ก่อนวันกดบัตร"
+  quota       Int?        // Total quota across all users, null = unlimited
+  maxPerUser  Int?        // Quota per user, null = unlimited
+  expiresAt   DateTime?   // Expiration datetime, null = no expiration
   isActive    Boolean     @default(true)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt

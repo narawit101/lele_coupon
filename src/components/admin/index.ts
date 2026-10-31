@@ -29,6 +29,7 @@ export { default as ProfileSettingsModal } from "./modals/ProfileSettingsModal";
 export { default as NewAdminModal } from "./modals/NewAdminModal";
 export { default as AdjustStampsModal } from "./modals/AdjustStampsModal";
 export { default as AdjustTierModal } from "./modals/AdjustTierModal";
+export { default as ManageMemberModal } from "./modals/ManageMemberModal";
 
 // Hooks
 export { useAdminAuth } from "./hooks/useAdminAuth";

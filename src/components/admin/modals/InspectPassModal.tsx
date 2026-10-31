@@ -46,11 +46,17 @@ export default function InspectPassModal({
                   pass.status === "ACTIVE" ? "text-[#657406]" : "text-slate-400"
                 }`}
               >
-                {pass.status === "ACTIVE" ? "ยังไม่ใช้งาน" : "ใช้งานแล้ว"}
+                {pass.status === "ACTIVE" ? "รอยืนยันสิทธิ์" : "ใช้งานแล้ว"}
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
               {pass.rewardTitle || "สิทธิ์ลัดคิว"}
+              {pass.promotion?.points !== undefined &&
+                pass.promotion?.points !== null && (
+                  <span className="text-slate-400 font-latin ml-1">
+                    (ใช้ {pass.promotion.points} แต้ม)
+                  </span>
+                )}
             </p>
           </div>
           <button
@@ -85,7 +91,7 @@ export default function InspectPassModal({
           </div>
           {pass.status === "USED" && (
             <div className="flex justify-between items-baseline gap-2 pt-2 border-t border-[#D0DEF7]/40">
-              <span className="text-slate-500">งานที่ใช้งาน</span>
+              <span className="text-slate-500">งานที่ใช้สิทธิ์</span>
               <span className="font-semibold text-[#25384C] text-right">
                 {pass.usedForConcert || "-"}
               </span>
@@ -98,7 +104,7 @@ export default function InspectPassModal({
           <div className="pt-2 border-t border-[#D0DEF7]/40 space-y-3">
             <div>
               <label className="block text-xs font-semibold text-[#25384C] mb-1">
-                งานที่ใช้งาน
+                งานที่ใช้สิทธิ์
               </label>
               <input
                 type="text"

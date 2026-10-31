@@ -13,6 +13,12 @@ export interface PromoModalProps {
   setPromoPoints: (val: string) => void;
   promoDesc: string;
   setPromoDesc: (val: string) => void;
+  promoQuota: string;
+  setPromoQuota: (val: string) => void;
+  promoMaxPerUser: string;
+  setPromoMaxPerUser: (val: string) => void;
+  promoExpiresAt: string;
+  setPromoExpiresAt: (val: string) => void;
   promoActive: boolean;
   setPromoActive: React.Dispatch<React.SetStateAction<boolean>>;
   savingPromo: boolean;
@@ -30,6 +36,12 @@ export default function PromoModal({
   setPromoPoints,
   promoDesc,
   setPromoDesc,
+  promoQuota,
+  setPromoQuota,
+  promoMaxPerUser,
+  setPromoMaxPerUser,
+  promoExpiresAt,
+  setPromoExpiresAt,
   promoActive,
   setPromoActive,
   savingPromo,
@@ -70,7 +82,8 @@ export default function PromoModal({
         <form onSubmit={onSave} className="space-y-3.5">
           <div>
             <label className="block text-xs font-semibold text-[#25384C] mb-1">
-              ชื่อโปรโมชั่น / ของรางวัล <span className="text-[#B01444]">*</span>
+              ชื่อโปรโมชั่น / ของรางวัล{" "}
+              <span className="text-[#B01444]">*</span>
             </label>
             <input
               type="text"
@@ -102,11 +115,54 @@ export default function PromoModal({
               รายละเอียด / เงื่อนไขการใช้งาน
             </label>
             <textarea
-              rows={3}
+              rows={2}
               placeholder="เช่น ใช้ได้กับคอนเสิร์ตทุกงาน แจ้งทาง DM ก่อนวันกดบัตร 1 วัน"
               value={promoDesc}
               onChange={(e) => setPromoDesc(e.target.value)}
               className="w-full px-3 py-2 text-xs border border-[#D0DEF7] rounded-lg bg-white outline-none focus:border-[#25384C] transition"
+            />
+          </div>
+
+          {/* Quotas & User Limits */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-[#25384C] mb-1">
+                จำนวนสิทธิ์รวมทั้งหมด
+              </label>
+              <input
+                type="number"
+                min="1"
+                placeholder="เว้นว่าง = ไม่จำกัด"
+                value={promoQuota}
+                onChange={(e) => setPromoQuota(e.target.value)}
+                className="w-full px-3 py-2 text-xs border border-[#D0DEF7] rounded-lg bg-white outline-none focus:border-[#25384C] font-latin transition"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#25384C] mb-1">
+                จำกัดสิทธิ์ต่อคน (สิทธิ์/คน)
+              </label>
+              <input
+                type="number"
+                min="1"
+                placeholder="เว้นว่าง = ไม่จำกัด"
+                value={promoMaxPerUser}
+                onChange={(e) => setPromoMaxPerUser(e.target.value)}
+                className="w-full px-3 py-2 text-xs border border-[#D0DEF7] rounded-lg bg-white outline-none focus:border-[#25384C] font-latin transition"
+              />
+            </div>
+          </div>
+
+          {/* Expiration Date */}
+          <div>
+            <label className="block text-xs font-semibold text-[#25384C] mb-1">
+              วันหมดอายุโปรโมชั่น (ถ้ามี)
+            </label>
+            <input
+              type="datetime-local"
+              value={promoExpiresAt}
+              onChange={(e) => setPromoExpiresAt(e.target.value)}
+              className="w-full px-3 py-2 text-xs border border-[#D0DEF7] rounded-lg bg-white outline-none focus:border-[#25384C] font-latin transition"
             />
           </div>
 
@@ -124,7 +180,8 @@ export default function PromoModal({
                   width: 44,
                   height: 24,
                   backgroundColor: promoActive ? "#25384C" : "#CBD5E1",
-                  transition: "background-color 0.25s ease, border-color 0.25s ease",
+                  transition:
+                    "background-color 0.25s ease, border-color 0.25s ease",
                 }}
                 className={`rounded-full p-0.5 flex items-center shrink-0 border ${
                   promoActive ? "border-[#25384C]" : "border-slate-300"
@@ -134,7 +191,9 @@ export default function PromoModal({
                   style={{
                     width: 18,
                     height: 18,
-                    transform: promoActive ? "translateX(20px)" : "translateX(0px)",
+                    transform: promoActive
+                      ? "translateX(20px)"
+                      : "translateX(0px)",
                     transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
                   }}
                   className="bg-white rounded-full shadow-sm"

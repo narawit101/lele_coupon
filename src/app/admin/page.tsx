@@ -287,6 +287,12 @@ export default function AdminDashboard() {
             setPromoPoints={promotionsHook.setPromoPoints}
             promoDesc={promotionsHook.promoDesc}
             setPromoDesc={promotionsHook.setPromoDesc}
+            promoQuota={promotionsHook.promoQuota}
+            setPromoQuota={promotionsHook.setPromoQuota}
+            promoMaxPerUser={promotionsHook.promoMaxPerUser}
+            setPromoMaxPerUser={promotionsHook.setPromoMaxPerUser}
+            promoExpiresAt={promotionsHook.promoExpiresAt}
+            setPromoExpiresAt={promotionsHook.setPromoExpiresAt}
             promoActive={promotionsHook.promoActive}
             setPromoActive={promotionsHook.setPromoActive}
             savingPromo={promotionsHook.savingPromo}

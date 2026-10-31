@@ -32,6 +32,7 @@ interface ActivityFeedProps {
   onPageChange: (newPage: number) => void;
   containerRef?: React.RefObject<HTMLDivElement | null>;
   currentUser?: UserProfile | null;
+  onResubmitReview?: (review: ReviewSubmission) => void;
 }
 
 export default function ActivityFeed({
@@ -46,6 +47,7 @@ export default function ActivityFeed({
   onPageChange,
   containerRef,
   currentUser,
+  onResubmitReview,
 }: ActivityFeedProps) {
   return (
     <div ref={containerRef} className="pt-2 scroll-mt-20">
@@ -110,28 +112,60 @@ export default function ActivityFeed({
                 return (
                   <div
                     key={item.id}
-                    className="bg-white rounded-[14px] px-3.5 py-3 border border-[#D0DEF7] shadow-2xs flex items-center justify-between gap-3"
+                    className="bg-white rounded-[14px] px-3.5 py-3 border border-[#D0DEF7] shadow-2xs flex flex-col gap-2.5"
                   >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-[#25384C] truncate">
-                        ส่งรีวิว: {rev.concertName}
-                      </p>
-                      <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-                        {formatThaiDateTime(rev.createdAt)}
-                      </p>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-[#25384C] truncate">
+                          ส่งรีวิว: {rev.concertName}
+                        </p>
+                        <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                          {formatThaiDateTime(item.date)}
+                        </p>
+                      </div>
+                      <div className="shrink-0 flex items-center justify-end text-right">
+                        {rev.status === "PENDING" && (
+                          <span className="text-xs font-bold text-[#956018]">
+                            รอตรวจสอบ
+                          </span>
+                        )}
+                        {rev.status === "REJECTED" && (
+                          <span className="text-xs font-bold text-[#B01444]">
+                            ไม่อนุมัติ
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="shrink-0 flex items-center justify-end text-right">
-                      {rev.status === "PENDING" && (
-                        <span className="text-xs font-bold text-[#956018]">
-                          รอตรวจสอบ
-                        </span>
-                      )}
-                      {rev.status === "REJECTED" && (
-                        <span className="text-xs font-bold text-[#B01444]">
-                          ไม่อนุมัติ
-                        </span>
-                      )}
-                    </div>
+
+                    {/* Rejection Details & Resubmit Action */}
+                    {rev.status === "REJECTED" && (
+                      <div className="pt-2.5 border-t border-[#D0DEF7]/70 flex flex-col gap-2.5">
+                        <div className="flex flex-col gap-1 text-xs">
+                          <span className="font-bold text-[#B01444]">
+                            สาเหตุที่ไม่อนุมัติ:
+                          </span>
+                          <p className="font-medium text-slate-600 wrap-break-word leading-relaxed text-xs">
+                            {rev.rejectReason ||
+                              "หลักฐานไม่ชัดเจน หรือไม่ตรงตามเงื่อนไข"}
+                          </p>
+                        </div>
+
+                        {onResubmitReview && (
+                          <div className="pt-1 flex flex-col gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => onResubmitReview(rev)}
+                              className="w-full min-h-10 px-4 py-2 bg-[#25384C] hover:bg-[#1B2938] text-white font-semibold text-xs rounded-xl shadow-2xs transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center text-center"
+                            >
+                              แก้ไขและส่งใหม่
+                            </button>
+                            <p className="text-[11px] text-slate-400 font-medium text-center">
+                              แก้ไขข้อมูลเดิมและส่งหลักฐานใหม่เพื่อรออนุมัติอีกครั้ง
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               }
@@ -145,6 +179,13 @@ export default function ActivityFeed({
                 );
                 const isAutoTier =
                   isTierChange && log.reason.includes("อัตโนมัติ");
+                const isRejectPointLog = log.reason.startsWith(
+                  "ปรับสถานะเป็นไม่อนุมัติ",
+                );
+                const reasonMatch = log.reason.match(/\[เหตุผล:\s*(.*)\]/);
+                const rejectReason = reasonMatch
+                  ? reasonMatch[1]
+                  : log.review?.rejectReason;
 
                 // Parse Tier Change Details if applicable
                 let tierTitle = "";
@@ -184,86 +225,96 @@ export default function ActivityFeed({
                 return (
                   <div
                     key={item.id}
-                    className="bg-white rounded-[14px] px-3.5 py-3 border border-[#D0DEF7] shadow-2xs flex items-center justify-between gap-3"
+                    className="bg-white rounded-[14px] px-3.5 py-3 border border-[#D0DEF7] shadow-2xs flex flex-col gap-2.5"
                   >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-[#25384C] truncate">
-                        {isTierChange
-                          ? tierTitle
-                          : log.reason.replace(/\s*\([+-]?\d+\s*แต้ม\)$/, "")}
-                      </p>
-                      {isTierChange && tierNote && (
-                        <p className="text-[11px] text-slate-500 font-medium mt-0.5 truncate">
-                          {tierNote}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-[#25384C] truncate">
+                          {isTierChange
+                            ? tierTitle
+                            : log.reason
+                                .replace(/\s*\[เหตุผล:.*\]/, "")
+                                .replace(/\s*\([+-]?\d+\s*แต้ม\)$/, "")}
                         </p>
-                      )}
-                      {isUsed && (
-                        <p className="text-xs text-[#25384C] mt-0.5 truncate">
-                          <span className="text-slate-400 font-medium">
-                            งานที่ใช้:
-                          </span>{" "}
-                          <span className="font-semibold text-[#25384C]">
-                            {pass.usedForConcert || "ไม่ระบุชื่องาน"}
-                          </span>
+                        {isTierChange && tierNote && (
+                          <p className="text-[11px] text-slate-500 font-medium mt-0.5 truncate">
+                            {tierNote}
+                          </p>
+                        )}
+                        {isRejectPointLog && rejectReason && (
+                          <p className="text-[11px] text-[#B01444] font-medium mt-0.5 wrap-break-word">
+                            สาเหตุ: {rejectReason}
+                          </p>
+                        )}
+                        {isUsed && (
+                          <p className="text-xs text-[#25384C] mt-0.5 truncate">
+                            <span className="text-slate-400 font-medium">
+                              งานที่ใช้:
+                            </span>{" "}
+                            <span className="font-semibold text-[#25384C]">
+                              {pass?.usedForConcert || "ไม่ระบุชื่องาน"}
+                            </span>
+                          </p>
+                        )}
+                        <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                          {formatThaiDateTime(log.createdAt)}
                         </p>
-                      )}
-                      <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-                        {formatThaiDateTime(log.createdAt)}
-                      </p>
-                    </div>
-                    <div className="shrink-0 flex items-center justify-end text-right">
-                      {isTierChange ? (
-                        tierConfig?.frameImage ? (
-                          <div
-                            className="relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center"
-                            title={tierConfig.label}
+                      </div>
+                      <div className="shrink-0 flex items-center justify-end text-right">
+                        {isTierChange ? (
+                          tierConfig?.frameImage ? (
+                            <div
+                              className="relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center"
+                              title={tierConfig.label}
+                            >
+                              <Image
+                                src={tierConfig.frameImage}
+                                alt={tierConfig.label}
+                                width={40}
+                                height={40}
+                                unoptimized
+                                priority
+                                className="w-full h-full object-contain pointer-events-none select-none drop-shadow-2xs"
+                              />
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border tracking-wide shadow-2xs bg-slate-100 text-[#25384C] border-slate-300">
+                              ปรับระดับ
+                            </span>
+                          )
+                        ) : pass ||
+                          log.reason.includes("สิทธิ์") ||
+                          log.reason.includes("แลก") ? (
+                          <span
+                            className={`text-xs font-bold ${
+                              isUsed || log.reason.startsWith("ใช้สิทธิ์ลัดคิว")
+                                ? "text-slate-400"
+                                : log.reason.startsWith("ยกเลิกการใช้สิทธิ์")
+                                  ? "text-slate-500"
+                                  : "text-[#315F91]"
+                            }`}
                           >
-                            <Image
-                              src={tierConfig.frameImage}
-                              alt={tierConfig.label}
-                              width={40}
-                              height={40}
-                              unoptimized
-                              priority
-                              className="w-full h-full object-contain pointer-events-none select-none drop-shadow-2xs"
-                            />
-                          </div>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border tracking-wide shadow-2xs bg-slate-100 text-[#25384C] border-slate-300">
-                            ปรับระดับ
-                          </span>
-                        )
-                      ) : pass ||
-                        log.reason.includes("สิทธิ์") ||
-                        log.reason.includes("แลก") ? (
-                        <span
-                          className={`text-xs font-bold ${
-                            isUsed || log.reason.startsWith("ใช้สิทธิ์ลัดคิว")
-                              ? "text-slate-400"
+                            {isUsed || log.reason.startsWith("ใช้สิทธิ์ลัดคิว")
+                              ? "ใช้สิทธิ์แล้ว"
                               : log.reason.startsWith("ยกเลิกการใช้สิทธิ์")
-                                ? "text-slate-500"
-                                : "text-[#315F91]"
-                          }`}
-                        >
-                          {isUsed || log.reason.startsWith("ใช้สิทธิ์ลัดคิว")
-                            ? "ใช้สิทธิ์แล้ว"
-                            : log.reason.startsWith("ยกเลิกการใช้สิทธิ์")
-                              ? "คืนสิทธิ์แล้ว"
-                              : "ได้รับสิทธิ์"}
-                        </span>
-                      ) : (
-                        <span
-                          className={`text-xs sm:text-sm font-bold font-latin ${
-                            log.amount > 0
-                              ? "text-[#2D7058]"
-                              : log.amount < 0
-                                ? "text-[#B01444]"
-                                : "text-slate-400"
-                          }`}
-                        >
-                          {log.amount > 0 ? `+${log.amount}` : log.amount} แต้ม
-                        </span>
-                      )}
+                                ? "คืนสิทธิ์แล้ว"
+                                : "ได้รับสิทธิ์"}
+                          </span>
+                        ) : (
+                          <span
+                            className={`text-xs sm:text-sm font-bold font-latin ${
+                              log.amount > 0
+                                ? "text-[#2D7058]"
+                                : log.amount < 0
+                                  ? "text-[#B01444]"
+                                  : "text-slate-400"
+                            }`}
+                          >
+                            {log.amount > 0 ? `+${log.amount}` : log.amount}{" "}
+                            แต้ม
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

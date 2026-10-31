@@ -49,20 +49,54 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-button, a, input, textarea, select {
+button,
+a,
+input,
+textarea,
+select {
   -webkit-tap-highlight-color: transparent;
 }
 
-button:focus-visible, a:focus-visible {
+/* Prevent image loading outline / border artifacts in Chromium */
+img {
+  border-style: none !important;
+  border: 0 !important;
+  outline: none !important;
+}
+
+img:not([src]),
+img[src=""] {
+  border: 0 !important;
+  outline: none !important;
+}
+
+/* Eradicate unwanted browser focus outlines on non-interactive containers (main, div, section) */
+*:focus:not(button):not(a):not(input):not(textarea):not(select),
+*:focus-visible:not(button):not(a):not(input):not(textarea):not(select),
+main,
+main:focus,
+main:focus-visible,
+div:focus,
+div:focus-visible,
+[tabindex="-1"] {
+  outline: none !important;
+}
+
+button:focus-visible,
+a:focus-visible {
   outline: 2px solid var(--color-booking-blue);
   outline-offset: 2px;
 }
 
-input:focus-visible, textarea:focus-visible, select:focus-visible {
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
   outline: none;
 }
 
-.font-latin, code, .font-mono {
+.font-latin,
+code,
+.font-mono {
   font-family: var(--font-latin), "Nunito Sans", ui-sans-serif, sans-serif;
 }
 
@@ -79,61 +113,140 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   background: var(--color-cornflower);
 }
 
+/* Custom Toastify - LELE' Ticket Brand Styling */
+:root {
+  --toastify-toast-width: fit-content;
+  --toastify-toast-min-height: 42px;
+}
+
+.Toastify__toast-container {
+  width: auto !important;
+  max-width: calc(100vw - 32px);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 9999;
+}
+
+.Toastify__toast-container--bottom-center {
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.Toastify__toast {
+  width: fit-content !important;
+  min-width: 0 !important;
+  max-width: min(92vw, 420px) !important;
+  min-height: 42px !important;
+  padding: 9px 14px !important;
+  margin: 0 0 8px 0 !important;
+  border-radius: 14px !important;
+  border: 1px solid #D0DEF7 !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 6px 20px rgba(37, 56, 76, 0.08) !important;
+}
+
 .toast-lele {
-  border-radius: var(--radius-control);
   font-family: var(--font-thai), "Noto Sans Thai", sans-serif;
-  font-size: 14px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #25384C;
+}
+
+.Toastify__toast-body {
+  padding: 0 4px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1.4;
+}
+
+.Toastify__toast-icon {
+  width: 18px;
+  margin-inline-end: 8px;
+}
+
+.Toastify__close-button {
+  align-self: center;
+  margin-left: 10px;
+  opacity: 0.45;
+  transition: opacity 0.15s ease;
+}
+
+.Toastify__close-button:hover {
+  opacity: 0.9;
 }
 
 @media (max-width: 640px) {
-  .Toastify__toast-container {
-    width: calc(100vw - 32px);
-    left: 16px;
-    right: 16px;
-    bottom: 16px;
+    .Toastify__toast-container--bottom-center {
+      bottom: 20px;
+    }
   }
-}
 
-/* Smooth micro-animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
+  /* Smooth micro-animations */
+  @keyframes float {
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
+    0%,
+    100% {
+      transform: translateY(0);
+    }
 
-@keyframes pulse-subtle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.92; transform: scale(1.03); }
-}
+    50% {
+      transform: translateY(-4px);
+    }
+  }
 
-.animate-pulse-subtle {
-  animation: pulse-subtle 2.5s ease-in-out infinite;
-}
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
 
-/* Hide scrollbars across the application for a clean, app-like experience */
-@utility no-scrollbar {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-  &::-webkit-scrollbar {
+  @keyframes pulse-subtle {
+
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 0.92;
+      transform: scale(1.03);
+    }
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2.5s ease-in-out infinite;
+  }
+
+  /* Hide scrollbars across the application for a clean, app-like experience */
+  @utility no-scrollbar {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+
+    &::-webkit-scrollbar {
+      display: none !important;
+      width: 0px !important;
+      height: 0px !important;
+      background: transparent !important;
+    }
+  }
+
+  html,
+  body,
+  div,
+  main,
+  section,
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  ::-webkit-scrollbar,
+  *::-webkit-scrollbar {
     display: none !important;
     width: 0px !important;
     height: 0px !important;
     background: transparent !important;
   }
-}
-
-html, body, div, main, section, * {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-}
-
-::-webkit-scrollbar,
-*::-webkit-scrollbar {
-  display: none !important;
-  width: 0px !important;
-  height: 0px !important;
-  background: transparent !important;
-}

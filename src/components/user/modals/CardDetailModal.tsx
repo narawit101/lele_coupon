@@ -2,10 +2,11 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { User as UserIcon, Copy, Check, X } from "lucide-react";
+import { Copy, Check, X } from "lucide-react";
 import { getMemberTier } from "@/lib/tier";
 import { UserProfile } from "@/types/user";
 import { toast } from "react-toastify";
+import UserCardContent from "../UserCardContent";
 
 interface CardDetailModalProps {
   isOpen: boolean;
@@ -94,9 +95,9 @@ export default function CardDetailModal({
     }, 380);
   };
 
-  if (!isOpen) return null;
+  const memberTier = React.useMemo(() => getMemberTier(user), [user]);
 
-  const memberTier = getMemberTier(user);
+  if (!isOpen) return null;
 
   const handleCopyId = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -169,131 +170,7 @@ export default function CardDetailModal({
               pointerEvents: isFlipped ? "none" : "auto",
             }}
           >
-            {/* VIP Crystal Frame - Floats purely with native PNG transparency */}
-            {memberTier.cardFrameImage && (
-              <div className="absolute inset-0 pointer-events-none z-0">
-                <Image
-                  src={memberTier.cardFrameImage}
-                  alt=""
-                  fill
-                  unoptimized
-                  priority
-                  style={{ objectFit: "fill" }}
-                  className="w-full h-full pointer-events-none select-none drop-shadow-[0_15px_35px_rgba(0,0,0,0.35)]"
-                />
-              </div>
-            )}
-
-            {/* Decorative Brand Watermark */}
-            <div className="pointer-events-none select-none absolute inset-0 bottom-6 sm:bottom-8 right-6 sm:right-8 overflow-hidden z-1">
-              <div className="absolute right-0 bottom-0 w-36 h-36 sm:w-44 sm:h-44 opacity-40 sm:opacity-45 overflow-hidden rounded-full">
-                <Image
-                  src="/icon.png"
-                  alt=""
-                  width={160}
-                  height={160}
-                  priority
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-
-            {/* Front Content */}
-            <div className="relative z-10 h-full px-[9%] sm:px-[10%] pt-[24.5%] sm:pt-[25%] pb-[14%] sm:pb-[14.5%] flex flex-col justify-between">
-              {/* Top Identity */}
-              <div className="flex items-start justify-between gap-2 sm:gap-3">
-                <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
-                  <div className="relative shrink-0 flex items-center justify-center w-16 h-16 sm:w-18 sm:h-18">
-                    <div
-                      className="absolute rounded-full overflow-hidden bg-[#FAF8F2] z-0 shadow-inner"
-                      style={{
-                        top: memberTier.avatarMetrics.top,
-                        left: memberTier.avatarMetrics.left,
-                        width: memberTier.avatarMetrics.size,
-                        height: memberTier.avatarMetrics.size,
-                        transform: "translate(-50%, -50%)",
-                      }}
-                    >
-                      {user.avatarUrl ? (
-                        <Image
-                          src={user.avatarUrl}
-                          alt={user.displayName}
-                          fill
-                          unoptimized
-                          sizes="64px"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <UserIcon className="w-full h-full p-2 text-[#5284B7]" />
-                      )}
-                    </div>
-
-                    {memberTier.frameImage && (
-                      <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
-                        <Image
-                          src={memberTier.frameImage}
-                          alt={memberTier.label}
-                          width={90}
-                          height={90}
-                          unoptimized
-                          priority
-                          className="w-full h-full object-contain pointer-events-none select-none drop-shadow-xs"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0 pr-1">
-                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                      <h2 className="text-sm sm:text-base font-bold text-[#25384C] leading-snug truncate max-w-30 sm:max-w-40">
-                        {user.displayName}
-                      </h2>
-                      <span
-                        className={`inline-flex items-center gap-1 pl-1.5 pr-1.5 sm:pr-2 py-0.5 rounded-full text-[9.5px] sm:text-[11px] font-bold font-latin border tracking-wide uppercase shadow-2xs ${memberTier.bgColor} ${memberTier.textColor} ${memberTier.borderColor}`}
-                      >
-                        <span>{memberTier.label}</span>
-                      </span>
-                    </div>
-
-                    <div className="mt-1 space-y-0.5 text-[10.5px] sm:text-xs text-slate-500">
-                      <p className="flex items-center gap-1.5 truncate">
-                        <span className="text-slate-400 font-medium shrink-0">
-                          บัญชี X:
-                        </span>
-                        <span className="font-semibold text-[#25384C] truncate">
-                          {user.xHandle ? `@${user.xHandle}` : "ยังไม่ได้ระบุ"}
-                        </span>
-                      </p>
-                      <p className="flex items-center gap-1.5 truncate">
-                        <span className="text-slate-400 font-medium shrink-0">
-                          เบอร์โทร:
-                        </span>
-                        <span className="font-semibold text-[#25384C] truncate">
-                          {user.phone || "ยังไม่ได้ระบุ"}
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Points */}
-              <div className="mt-auto pt-2 sm:pt-2.5 border-t border-[#25384C]/10 flex items-center justify-between pl-3.5 sm:pl-4">
-                <div>
-                  <p className="text-[10px] sm:text-[11px] font-medium text-slate-500">
-                    แต้มสะสมปัจจุบัน
-                  </p>
-                  <div className="flex items-baseline gap-1 mt-0.5">
-                    <span className="font-latin text-2xl sm:text-3xl font-extrabold text-[#25384C]">
-                      {user.stamps.toLocaleString()}
-                    </span>
-                    <span className="text-[11px] sm:text-xs font-semibold text-[#657406]">
-                      แต้ม
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <UserCardContent user={user} />
           </div>
 
           {/* ==================== BACK FACE (MATCHES FRONT CRYSTAL SILHOUETTE & BACKGROUND) ==================== */}
@@ -316,8 +193,8 @@ export default function CardDetailModal({
                   fill
                   unoptimized
                   priority
-                  style={{ objectFit: "fill" }}
-                  className="w-full h-full pointer-events-none select-none drop-shadow-[0_15px_35px_rgba(0,0,0,0.35)] scale-x-[-1]"
+                  style={{ objectFit: "fill", border: 0, outline: "none" }}
+                  className="w-full h-full pointer-events-none select-none scale-x-[-1] border-0 outline-none"
                 />
               </div>
             )}
@@ -382,7 +259,7 @@ export default function CardDetailModal({
                     แต้มสะสมทั้งหมด
                   </p>
                   <div className="flex items-baseline gap-1 mt-0.5">
-                    <span className="font-latin text-2xl sm:text-3xl font-extrabold text-[#657406]">
+                    <span className="font-latin text-2xl sm:text-3xl font-extrabold ">
                       {(user.lifetimeStamps ?? user.stamps).toLocaleString()}
                     </span>
                     <span className="text-[11px] sm:text-xs font-semibold text-[#657406]">

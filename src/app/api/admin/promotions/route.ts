@@ -54,6 +54,8 @@ export async function GET(req: NextRequest) {
       orderBy = [{ passes: { _count: sortOrder } }, { createdAt: "desc" }];
     } else if (sortBy === "status") {
       orderBy = [{ isActive: sortOrder }, { points: "asc" }];
+    } else if (sortBy === "expiresAt") {
+      orderBy = [{ expiresAt: sortOrder }, { createdAt: "desc" }];
     }
 
     const [promotions, total, activeCount] = await Promise.all([
@@ -94,7 +96,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { title, points, description, isActive } = body;
+    const { title, points, description, quota, maxPerUser, expiresAt, isActive } = body;
 
     if (!title || !title.trim()) {
       return NextResponse.json({ error: "กรุณาระบุชื่อโปรโมชั่น" }, { status: 400 });
@@ -105,11 +107,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "จำนวนแต้มต้องเป็นตัวเลขมากกว่า 0" }, { status: 400 });
     }
 
+    const quotaNum = quota !== undefined && quota !== "" && quota !== null ? parseInt(quota, 10) : null;
+    const maxPerUserNum = maxPerUser !== undefined && maxPerUser !== "" && maxPerUser !== null ? parseInt(maxPerUser, 10) : null;
+    const expiresAtDate = expiresAt ? new Date(expiresAt) : null;
+
     const promotion = await prisma.promotion.create({
       data: {
         title: title.trim(),
         points: pointsNum,
         description: description?.trim() || null,
+        quota: quotaNum,
+        maxPerUser: maxPerUserNum,
+        expiresAt: expiresAtDate,
         isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
@@ -129,7 +138,7 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { id, title, points, description, isActive } = body;
+    const { id, title, points, description, quota, maxPerUser, expiresAt, isActive } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Promotion ID required" }, { status: 400 });
@@ -139,6 +148,9 @@ export async function PATCH(req: NextRequest) {
       title?: string;
       points?: number;
       description?: string | null;
+      quota?: number | null;
+      maxPerUser?: number | null;
+      expiresAt?: Date | null;
       isActive?: boolean;
     } = {};
 
@@ -148,6 +160,15 @@ export async function PATCH(req: NextRequest) {
       if (!isNaN(p) && p > 0) updateData.points = p;
     }
     if (description !== undefined) updateData.description = description?.trim() || null;
+    if (quota !== undefined) {
+      updateData.quota = quota !== "" && quota !== null ? parseInt(quota, 10) : null;
+    }
+    if (maxPerUser !== undefined) {
+      updateData.maxPerUser = maxPerUser !== "" && maxPerUser !== null ? parseInt(maxPerUser, 10) : null;
+    }
+    if (expiresAt !== undefined) {
+      updateData.expiresAt = expiresAt ? new Date(expiresAt) : null;
+    }
     if (isActive !== undefined) updateData.isActive = Boolean(isActive);
 
     const promotion = await prisma.promotion.update({

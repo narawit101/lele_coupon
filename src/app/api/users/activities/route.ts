@@ -49,6 +49,19 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      let matchedReview = null;
+      if (l.reason.includes("ไม่อนุมัติ")) {
+        const concertNamePart = l.reason
+          .replace("ปรับสถานะเป็นไม่อนุมัติ:", "")
+          .replace("ไม่อนุมัติรีวิว:", "")
+          .replace(/\s*\([+-]?\d+\s*แต้ม\)$/, "")
+          .replace(/\s*\[เหตุผล:.*\]/, "")
+          .trim();
+        matchedReview = reviews.find(
+          (r) => r.concertName.trim().toLowerCase() === concertNamePart.toLowerCase()
+        );
+      }
+
       return {
         ...l,
         pass: matchedPass
@@ -59,6 +72,18 @@ export async function GET(request: NextRequest) {
             usedAt: matchedPass.usedAt ? matchedPass.usedAt.toISOString() : null,
           }
           : null,
+        review: matchedReview
+          ? {
+            id: matchedReview.id,
+            concertName: matchedReview.concertName,
+            xHandle: matchedReview.xHandle,
+            postUrl: matchedReview.postUrl,
+            imageUrl: matchedReview.imageUrl,
+            status: matchedReview.status as "PENDING" | "APPROVED" | "REJECTED",
+            rejectReason: matchedReview.rejectReason,
+            createdAt: matchedReview.createdAt.toISOString(),
+          }
+          : null,
       };
     });
 
@@ -66,8 +91,17 @@ export async function GET(request: NextRequest) {
       ...reviews.map((r) => ({
         type: "REVIEW" as const,
         id: `rev-${r.id}`,
-        date: r.createdAt.toISOString(),
-        review: r,
+        date: (r.status === "REJECTED" && r.updatedAt ? r.updatedAt : r.createdAt).toISOString(),
+        review: {
+          id: r.id,
+          concertName: r.concertName,
+          xHandle: r.xHandle,
+          postUrl: r.postUrl,
+          imageUrl: r.imageUrl,
+          status: r.status as "PENDING" | "APPROVED" | "REJECTED",
+          rejectReason: r.rejectReason,
+          createdAt: r.createdAt.toISOString(),
+        },
       })),
       ...pointLogsWithPass.map((l) => ({
         type: "POINT_LOG" as const,

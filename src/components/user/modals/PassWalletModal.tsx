@@ -82,23 +82,21 @@ export default function PassWalletModal({
           </div>
 
           {/* Status Filter Buttons */}
-          <div className="flex gap-2 pt-3 text-xs font-bold">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-3 text-xs font-bold">
             <button
               type="button"
               onClick={() => handleStatusChangeInternal("ALL")}
-              className={`px-3 py-1.5 rounded-[10px] transition cursor-pointer flex items-center gap-1.5 ${
+              className={`py-2 px-1.5 rounded-xl transition cursor-pointer flex flex-col items-center justify-center gap-0.5 text-center ${
                 status === "ALL"
                   ? "bg-[#25384C] text-white shadow-2xs"
                   : "bg-[#FAF8F2] text-slate-600 hover:bg-[#D0DEF7]/40 border border-[#D0DEF7]"
               }`}
             >
-              <span>ทั้งหมด</span>
+              <span className="leading-tight">ทั้งหมด</span>
               <span
-                className={
-                  status === "ALL"
-                    ? "text-slate-300 font-latin"
-                    : "text-slate-500 font-latin"
-                }
+                className={`text-[11px] font-latin font-medium leading-none ${
+                  status === "ALL" ? "text-slate-300" : "text-slate-500"
+                }`}
               >
                 ({counts.all})
               </span>
@@ -106,19 +104,17 @@ export default function PassWalletModal({
             <button
               type="button"
               onClick={() => handleStatusChangeInternal("ACTIVE")}
-              className={`px-3 py-1.5 rounded-[10px] transition cursor-pointer flex items-center gap-1.5 ${
+              className={`py-2 px-1.5 rounded-xl transition cursor-pointer flex flex-col items-center justify-center gap-0.5 text-center ${
                 status === "ACTIVE"
                   ? "bg-[#25384C] text-white shadow-2xs"
                   : "bg-[#FAF8F2] text-slate-600 hover:bg-[#D0DEF7]/40 border border-[#D0DEF7]"
               }`}
             >
-              <span>พร้อมใช้งาน</span>
+              <span className="leading-tight">พร้อมใช้งาน</span>
               <span
-                className={
-                  status === "ACTIVE"
-                    ? "text-slate-300 font-latin"
-                    : "text-slate-500 font-latin"
-                }
+                className={`text-[11px] font-latin font-medium leading-none ${
+                  status === "ACTIVE" ? "text-slate-300" : "text-slate-500"
+                }`}
               >
                 ({counts.active})
               </span>
@@ -126,19 +122,17 @@ export default function PassWalletModal({
             <button
               type="button"
               onClick={() => handleStatusChangeInternal("USED")}
-              className={`px-3 py-1.5 rounded-[10px] transition cursor-pointer flex items-center gap-1.5 ${
+              className={`py-2 px-1.5 rounded-xl transition cursor-pointer flex flex-col items-center justify-center gap-0.5 text-center ${
                 status === "USED"
                   ? "bg-[#25384C] text-white shadow-2xs"
                   : "bg-[#FAF8F2] text-slate-600 hover:bg-[#D0DEF7]/40 border border-[#D0DEF7]"
               }`}
             >
-              <span>ใช้งานแล้ว</span>
+              <span className="leading-tight">ใช้งานแล้ว</span>
               <span
-                className={
-                  status === "USED"
-                    ? "text-slate-300 font-latin"
-                    : "text-slate-500 font-latin"
-                }
+                className={`text-[11px] font-latin font-medium leading-none ${
+                  status === "USED" ? "text-slate-300" : "text-slate-500"
+                }`}
               >
                 ({counts.used})
               </span>
@@ -281,13 +275,17 @@ export default function PassWalletModal({
                     ) : (
                       <div className="text-xs space-y-1.5 pt-2 border-t border-slate-200/60 text-slate-500">
                         <div className="flex items-center justify-between">
-                          <span className="text-slate-400">งานที่ใช้งาน:</span>
+                          <span className="text-slate-400">
+                            งานที่ใช้สิทธิ์:
+                          </span>
                           <span className="font-semibold text-[#25384C]">
                             {p.usedForConcert || "ไม่ระบุชื่องาน"}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-slate-400">วันที่ใช้สิทธิ์:</span>
+                          <span className="text-slate-400">
+                            วันที่ใช้สิทธิ์:
+                          </span>
                           <span className="font-medium text-slate-600">
                             {formatThaiDateTime(p.usedAt)}
                           </span>

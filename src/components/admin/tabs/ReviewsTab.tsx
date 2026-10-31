@@ -92,7 +92,7 @@ export default function ReviewsTab({
   const reviewColumns: ColumnDef<AdminReview>[] = [
     {
       key: "concertName",
-      header: "ชื่องานคอนเสิร์ต / ศิลปิน",
+      header: "ชื่องานคอนเสิร์ต",
       sortable: true,
       className: "font-bold text-[#25384C] max-w-45 sm:max-w-55",
       render: (rev) => (
@@ -159,7 +159,7 @@ export default function ReviewsTab({
       header: "สถานะ",
       sortable: true,
       render: (rev) => (
-        <>
+        <div className="flex flex-col min-w-0">
           {rev.status === "PENDING" && (
             <span className="text-xs font-semibold text-[#657406]">
               รอตรวจสอบ
@@ -171,11 +171,21 @@ export default function ReviewsTab({
             </span>
           )}
           {rev.status === "REJECTED" && (
-            <span className="text-xs font-semibold text-[#B01444]">
-              ไม่อนุมัติ
-            </span>
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-semibold text-[#B01444]">
+                ไม่อนุมัติ
+              </span>
+              {rev.rejectReason && (
+                <span
+                  className="text-[11px] text-slate-500 font-normal line-clamp-2 max-w-44 sm:max-w-64 leading-tight mt-0.5"
+                  title={rev.rejectReason}
+                >
+                  {rev.rejectReason}
+                </span>
+              )}
+            </div>
           )}
-        </>
+        </div>
       ),
     },
   ];

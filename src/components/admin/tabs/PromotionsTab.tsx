@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import { Copy } from "lucide-react";
+import { toast } from "react-toastify";
 import AdminFilterBar from "../AdminFilterBar";
 import AdminDataTable, { ColumnDef } from "../AdminDataTable";
 import PromoModal from "../modals/PromoModal";
@@ -19,7 +21,7 @@ export interface PromotionsTabProps {
   promotionsTotalPages: number;
   promotionsSearch: string;
   promotionsStatus: string;
-  promotionsSortBy: "title" | "points" | "redeemed" | "status" | "";
+  promotionsSortBy: "title" | "points" | "redeemed" | "status" | "expiresAt" | "";
   promotionsSortOrder: "asc" | "desc";
   promotionsLoading: boolean;
   showPromoModal: boolean;
@@ -30,13 +32,21 @@ export interface PromotionsTabProps {
   setPromoPoints: (val: string) => void;
   promoDesc: string;
   setPromoDesc: (val: string) => void;
+  promoQuota: string;
+  setPromoQuota: (val: string) => void;
+  promoMaxPerUser: string;
+  setPromoMaxPerUser: (val: string) => void;
+  promoExpiresAt: string;
+  setPromoExpiresAt: (val: string) => void;
   promoActive: boolean;
   setPromoActive: React.Dispatch<React.SetStateAction<boolean>>;
   savingPromo: boolean;
   onPageChange: (page: number) => void;
   onSearchChange: (search: string) => void;
   onStatusChange: (status: string) => void;
-  onSort: (field: "title" | "points" | "redeemed" | "status") => void;
+  onSort: (
+    field: "title" | "points" | "redeemed" | "status" | "expiresAt",
+  ) => void;
   onOpenCreate: () => void;
   onOpenEdit: (promo: AdminPromotion) => void;
   onCloseModal: () => void;
@@ -105,6 +115,12 @@ export default function PromotionsTab({
   setPromoPoints,
   promoDesc,
   setPromoDesc,
+  promoQuota,
+  setPromoQuota,
+  promoMaxPerUser,
+  setPromoMaxPerUser,
+  promoExpiresAt,
+  setPromoExpiresAt,
   promoActive,
   setPromoActive,
   savingPromo,
@@ -217,22 +233,75 @@ export default function PromotionsTab({
     },
     {
       key: "redeemed",
-      header: "แลกแล้ว",
+      header: "แลกแล้ว / โควตา",
       sortable: true,
       className: "whitespace-nowrap",
-      render: (promo) => (
-        <span className="text-slate-600 font-medium">
-          {promo._count?.passes || 0} ครั้ง
-        </span>
-      ),
+      render: (promo) => {
+        const redeemed = promo._count?.passes || 0;
+        const hasQuota = promo.quota !== null && promo.quota !== undefined;
+        const isQuotaFull = hasQuota && redeemed >= (promo.quota || 0);
+
+        return (
+          <div className="flex flex-col">
+            <span
+              className={`font-semibold text-xs ${
+                isQuotaFull ? "text-[#B01444]" : "text-[#25384C]"
+              }`}
+            >
+              {hasQuota
+                ? `${redeemed} / ${promo.quota} สิทธิ์`
+                : `${redeemed} ครั้ง (ไม่จำกัด)`}
+            </span>
+            <div className="text-[11px] text-slate-500 mt-0.5">
+              {promo.maxPerUser
+                ? `จำกัด ${promo.maxPerUser} สิทธิ์/คน`
+                : "ไม่จำกัดสิทธิ์"}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: "expiresAt",
+      header: "วันหมดอายุ",
+      sortable: true,
+      className: "whitespace-nowrap",
+      render: (promo) => {
+        const isExpired =
+          Boolean(currentTime && promo.expiresAt) &&
+          new Date(promo.expiresAt!).getTime() < (currentTime ?? 0);
+        return promo.expiresAt ? (
+          <span
+            className={
+              isExpired
+                ? "text-[#B01444] font-semibold text-xs font-latin"
+                : "text-slate-600 text-xs font-latin"
+            }
+          >
+            {formatThaiDateTime(promo.expiresAt)}
+          </span>
+        ) : (
+          <span className="text-slate-400 text-xs">ไม่มีกำหนด</span>
+        );
+      },
     },
     {
       key: "status",
       header: "สถานะ",
       sortable: true,
       className: "whitespace-nowrap",
-      render: (promo) =>
-        promo.isActive ? (
+      render: (promo) => {
+        const isExpired =
+          Boolean(currentTime && promo.expiresAt) &&
+          new Date(promo.expiresAt!).getTime() < (currentTime ?? 0);
+        if (isExpired) {
+          return (
+            <span className="text-xs font-semibold text-[#B01444]">
+              หมดอายุ
+            </span>
+          );
+        }
+        return promo.isActive ? (
           <span className="text-xs font-semibold text-[#2D7058]">
             เปิดใช้งาน
           </span>
@@ -240,7 +309,8 @@ export default function PromotionsTab({
           <span className="text-xs font-semibold text-slate-400">
             ปิดใช้งาน
           </span>
-        ),
+        );
+      },
     },
   ];
 
@@ -251,7 +321,21 @@ export default function PromotionsTab({
       header: "รหัสโค้ด",
       sortable: true,
       render: (c) => (
-        <span className="font-mono font-bold text-[#25384C]">{c.code}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="font-mono font-bold text-[#25384C]">{c.code}</span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigator.clipboard.writeText(c.code);
+              toast.success(`คัดลอกรหัส ${c.code} แล้ว`);
+            }}
+            title="คัดลอกรหัสโค้ด"
+            className="p-1 rounded-md text-slate-400 hover:text-[#25384C] hover:bg-slate-100 transition cursor-pointer active:scale-95"
+          >
+            <Copy className="w-3.5 h-3.5" />
+          </button>
+        </div>
       ),
     },
     {
@@ -261,8 +345,14 @@ export default function PromotionsTab({
       render: (c) => (
         <div>
           <div className="font-semibold text-slate-800">{c.rewardTitle}</div>
-          <div className="text-[11px] text-slate-500 font-latin">
-            {c.rewardType === "PASS" ? "อื่นๆ" : "แต้มสะสม"}
+          <div className="text-[11px] font-latin">
+            {c.rewardType === "PASS" ? (
+              <span className="text-slate-500">อื่นๆ</span>
+            ) : (
+              <span className="text-slate-500">
+                +{c.rewardPoints ?? 0} แต้มสะสม
+              </span>
+            )}
           </div>
         </div>
       ),
@@ -273,10 +363,11 @@ export default function PromotionsTab({
       sortable: true,
       className: "whitespace-nowrap",
       render: (c) => {
-        const isQuotaFull =
-          c.maxUses !== null &&
-          c.maxUses !== undefined &&
-          c.usedCount >= c.maxUses;
+        const hasQuota = c.maxUses !== null && c.maxUses !== undefined;
+        if (!hasQuota) {
+          return <span className="text-slate-500 text-xs">ไม่จำกัด</span>;
+        }
+        const isQuotaFull = c.usedCount >= c.maxUses!;
         return (
           <div>
             <span
@@ -292,10 +383,7 @@ export default function PromotionsTab({
               }`}
             >
               {" "}
-              /{" "}
-              {c.maxUses !== null && c.maxUses !== undefined
-                ? c.maxUses
-                : "ไม่จำกัด"}
+              / {c.maxUses}
             </span>
           </div>
         );
@@ -435,7 +523,14 @@ export default function PromotionsTab({
             sortBy={promotionsSortBy}
             sortOrder={promotionsSortOrder}
             onSort={(field) =>
-              onSort(field as "title" | "points" | "redeemed" | "status")
+              onSort(
+                field as
+                  | "title"
+                  | "points"
+                  | "redeemed"
+                  | "status"
+                  | "expiresAt",
+              )
             }
             page={promotionsPage}
             totalPages={promotionsTotalPages}
@@ -508,6 +603,12 @@ export default function PromotionsTab({
         setPromoPoints={setPromoPoints}
         promoDesc={promoDesc}
         setPromoDesc={setPromoDesc}
+        promoQuota={promoQuota}
+        setPromoQuota={setPromoQuota}
+        promoMaxPerUser={promoMaxPerUser}
+        setPromoMaxPerUser={setPromoMaxPerUser}
+        promoExpiresAt={promoExpiresAt}
+        setPromoExpiresAt={setPromoExpiresAt}
         promoActive={promoActive}
         setPromoActive={setPromoActive}
         savingPromo={savingPromo}

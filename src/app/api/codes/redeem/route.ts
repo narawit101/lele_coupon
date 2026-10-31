@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserIdFromRequest } from "@/lib/user-auth";
+import { checkTierUpgrade, TIER_CONFIGS } from "@/lib/tier";
 
 export async function POST(request: NextRequest) {
   try {
@@ -106,6 +107,11 @@ export async function POST(request: NextRequest) {
           });
         } else if (specialCode.rewardType === "POINTS") {
           const pointsToAdd = specialCode.rewardPoints || 0;
+          const userBefore = await tx.user.findUnique({
+            where: { id: userId },
+            select: { tier: true, lifetimeStamps: true, stamps: true },
+          });
+
           await tx.user.update({
             where: { id: userId },
             data: {
@@ -120,6 +126,17 @@ export async function POST(request: NextRequest) {
               reason: `รับแต้มจากโค้ดพิเศษ (${specialCode.code})`,
             },
           });
+
+          const upgradedTier = checkTierUpgrade(userBefore, pointsToAdd);
+          if (upgradedTier) {
+            await tx.pointLog.create({
+              data: {
+                userId: userId,
+                amount: 0,
+                reason: `ปรับระดับสมาชิกเป็น อัตโนมัติ (${TIER_CONFIGS[upgradedTier].label})`,
+              },
+            });
+          }
         }
 
         // Record redemption to lock 1-per-user

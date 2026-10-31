@@ -1,6 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { Copy, Check } from "lucide-react";
+import { toast } from "react-toastify";
 import { AdminSpecialCode } from "../types";
 import { generateSpecialCode } from "../hooks/useAdminPromotions";
 
@@ -51,6 +53,16 @@ export default function SpecialCodeModal({
   onDelete,
   currentTime,
 }: SpecialCodeModalProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyCode = () => {
+    if (!codeName) return;
+    navigator.clipboard.writeText(codeName);
+    setCopied(true);
+    toast.success(`คัดลอกรหัส ${codeName} แล้ว`);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -101,15 +113,37 @@ export default function SpecialCodeModal({
                 </button>
               )}
             </div>
-            <input
-              type="text"
-              required
-              autoComplete="off"
-              value={codeName}
-              onChange={(e) => setCodeName(e.target.value.toUpperCase())}
-              placeholder="เช่น LELEXMAS, VIP2026"
-              className="w-full px-3 py-2 border border-[#D0DEF7] rounded-[10px] bg-white font-mono font-bold tracking-wider uppercase text-sm outline-none focus:border-[#25384C]"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                required
+                autoComplete="off"
+                value={codeName}
+                onChange={(e) => setCodeName(e.target.value.toUpperCase())}
+                placeholder="เช่น LELEXMAS, VIP2026"
+                className="flex-1 min-w-0 px-3 py-2 border border-[#D0DEF7] rounded-[10px] bg-white font-mono font-bold tracking-wider uppercase text-sm outline-none focus:border-[#25384C]"
+              />
+              {codeName && (
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  className="px-3 py-2 rounded-[10px] border border-[#D0DEF7] bg-[#FAF8F2] hover:bg-[#D0DEF7]/40 text-[#25384C] font-semibold text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0"
+                  title="คัดลอกรหัสโค้ด"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-[#2D7058]" />
+                      <span className="text-[#2D7058]">คัดลอกแล้ว</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-[#5284B7]" />
+                      <span>คัดลอก</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Reward Type */}

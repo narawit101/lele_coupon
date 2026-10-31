@@ -1,5 +1,7 @@
 export { default as UserCard } from "./UserCard";
 export type { UserCardProps } from "./UserCard";
+export { default as UserCardContent } from "./UserCardContent";
+export type { UserCardContentProps } from "./UserCardContent";
 
 export { default as ActivityFeed } from "./ActivityFeed";
 export type { HomeActivity } from "./ActivityFeed";
@@ -8,6 +10,8 @@ export { default as BottomNav, USER_NAV_TABS } from "./BottomNav";
 export type { UserNavTab, NavTabItem } from "./BottomNav";
 
 export { default as SettingsView } from "./SettingsView";
+export { default as WalletView } from "./WalletView";
+export type { WalletViewProps } from "./WalletView";
 
 // Modals
 export { default as ReviewModal } from "./modals/ReviewModal";

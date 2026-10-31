@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
       where: { code: code.trim().toUpperCase() },
       include: {
         user: { select: { displayName: true, xHandle: true, phone: true } },
+        promotion: { select: { points: true } },
       },
     });
     return NextResponse.json({ pass });
@@ -78,6 +79,7 @@ export async function GET(req: NextRequest) {
       take: limit,
       include: {
         user: { select: { displayName: true, xHandle: true, phone: true } },
+        promotion: { select: { points: true } },
       },
     }),
     prisma.queuePass.count({ where }),

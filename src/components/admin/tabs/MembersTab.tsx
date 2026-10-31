@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import Image from "next/image";
-import { Copy, Pencil, Trash2 } from "lucide-react";
+import { Copy, Pencil, Trash2, Wrench } from "lucide-react";
 import { toast } from "react-toastify";
 import { getMemberTier } from "@/lib/tier";
 import AdminFilterBar from "../AdminFilterBar";
 import AdminDataTable, { ColumnDef } from "../AdminDataTable";
-import AdjustStampsModal from "../modals/AdjustStampsModal";
-import AdjustTierModal from "../modals/AdjustTierModal";
+import ManageMemberModal from "../modals/ManageMemberModal";
 import EditAdminModal from "../modals/EditAdminModal";
 import NewAdminModal from "../modals/NewAdminModal";
 import { AdminMember, AdminProfile, ConfirmModalConfig } from "../types";
@@ -140,6 +139,22 @@ export default function MembersTab({
   onCreateAdmin,
   openConfirmModal,
 }: MembersTabProps) {
+  const [manageUser, setManageUser] = useState<AdminMember | null>(null);
+
+  const handleOpenManage = useCallback(
+    (member: AdminMember) => {
+      onOpenAdjust(member);
+      onOpenTier(member);
+      setManageUser(member);
+    },
+    [onOpenAdjust, onOpenTier],
+  );
+
+  const handleCloseManage = useCallback(() => {
+    onCloseAdjust();
+    onCloseTier();
+    setManageUser(null);
+  }, [onCloseAdjust, onCloseTier]);
   const promptDeleteAdmin = useCallback(
     (adminId: string, adminName: string, adminEmail: string) => {
       openConfirmModal({
@@ -310,15 +325,6 @@ export default function MembersTab({
                   <span className="leading-tight font-semibold text-[#25384C] block truncate max-w-32.5 sm:max-w-40">
                     {m.displayName}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => onOpenTier(m)}
-                    title="คลิกเพื่อปรับระดับสมาชิก"
-                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold font-latin border tracking-wide uppercase transition cursor-pointer hover:shadow-2xs active:scale-95 group ${t.bgColor} ${t.textColor} ${t.borderColor}`}
-                  >
-                    <span>{t.label}</span>
-                    <Pencil className="w-2.5 h-2.5 opacity-50 group-hover:opacity-100 transition shrink-0" />
-                  </button>
                 </div>
                 <button
                   type="button"
@@ -377,14 +383,6 @@ export default function MembersTab({
                   {m.stamps}
                 </span>{" "}
                 <span className="text-slate-500 text-xs">แต้ม</span>
-                <button
-                  type="button"
-                  onClick={() => onOpenAdjust(m)}
-                  title="คลิกเพื่อปรับแต้มสมาชิก"
-                  className="w-5 h-5 rounded-md hover:bg-[#D0DEF7]/40 text-slate-400 hover:text-[#25384C] border border-transparent hover:border-[#D0DEF7] flex items-center justify-center transition cursor-pointer active:scale-95 ml-0.5"
-                >
-                  <Pencil className="w-2.5 h-2.5 shrink-0" />
-                </button>
               </div>
               <span className="text-[10px] text-slate-400 mt-0.5">
                 สะสมทั้งหมด {totalPoints} แต้ม
@@ -393,6 +391,24 @@ export default function MembersTab({
           );
         },
       },
+      {
+        key: "actions",
+        header: "การจัดการ",
+        align: "right",
+        className: "whitespace-nowrap",
+        render: (m) => (
+          <div className="flex items-center justify-end">
+            <button
+              type="button"
+              onClick={() => handleOpenManage(m)}
+              title="จัดการสมาชิก (ปรับแต้ม / ปรับระดับ)"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-[#25384C] hover:bg-slate-100 border border-slate-200/80 transition cursor-pointer shadow-2xs active:scale-95"
+            >
+              <Wrench className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ),
+      },
     ];
   }, [
     membersSubTab,
@@ -400,8 +416,7 @@ export default function MembersTab({
     adminProfile?.role,
     onOpenEditAdmin,
     promptDeleteAdmin,
-    onOpenAdjust,
-    onOpenTier,
+    handleOpenManage,
   ]);
 
   return (
@@ -508,30 +523,24 @@ export default function MembersTab({
         onPageChange={onPageChange}
       />
 
-      {/* Adjust Stamps Modal */}
-      <AdjustStampsModal
-        user={adjustModalUser}
-        onClose={onCloseAdjust}
+      {/* Manage Member Modal (Adjust Stamps & Tier) */}
+      <ManageMemberModal
+        user={manageUser || adjustModalUser || tierModalUser}
+        onClose={handleCloseManage}
         adjustMode={adjustMode}
         setAdjustMode={onAdjustModeChange}
         adjustAmount={adjustAmount}
         setAdjustAmount={onAdjustAmountChange}
         adjustReason={adjustReason}
         setAdjustReason={onAdjustReasonChange}
-        submitting={adjustSubmitting}
-        onSubmit={onAdjustSubmit}
-      />
-
-      {/* Adjust Member Tier Modal */}
-      <AdjustTierModal
-        user={tierModalUser}
-        onClose={onCloseTier}
+        adjustSubmitting={adjustSubmitting}
+        onAdjustSubmit={onAdjustSubmit}
         adjustTier={adjustTier}
         setAdjustTier={onAdjustTierChange}
-        adjustReason={tierReason}
-        setAdjustReason={onTierReasonChange}
-        submitting={tierSubmitting}
-        onSubmit={onTierSubmit}
+        tierReason={tierReason}
+        setTierReason={onTierReasonChange}
+        tierSubmitting={tierSubmitting}
+        onTierSubmit={onTierSubmit}
       />
 
       {/* Edit Admin Modal */}

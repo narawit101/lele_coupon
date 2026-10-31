@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
 import { getAdminFromRequest } from "@/lib/admin-auth";
+import { checkTierUpgrade, TIER_CONFIGS } from "@/lib/tier";
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "lele_admin_2026";
 
@@ -120,7 +120,8 @@ export async function POST(req: NextRequest) {
           data: {
             userId: review.userId,
             amount: -1,
-            reason: `ปรับสถานะเป็นไม่อนุมัติ: ${review.concertName}`,
+            reason: `ปรับสถานะเป็นไม่อนุมัติ: ${review.concertName}${rejectReason ? ` [เหตุผล: ${rejectReason}]` : ""
+              }`,
           },
         });
         await tx.user.update({
@@ -166,6 +167,17 @@ export async function POST(req: NextRequest) {
           lifetimeStamps: { increment: 1 },
         },
       });
+
+      const upgradedTier = checkTierUpgrade(review.user, 1);
+      if (upgradedTier) {
+        await tx.pointLog.create({
+          data: {
+            userId: review.userId,
+            amount: 0,
+            reason: `ปรับระดับสมาชิกเป็น อัตโนมัติ (${TIER_CONFIGS[upgradedTier].label})`,
+          },
+        });
+      }
 
       const updatedReview = await tx.reviewSubmission.update({
         where: { id: reviewId },

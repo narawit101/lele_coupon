@@ -14,8 +14,18 @@ export interface Promotion {
   title: string;
   points: number;
   description?: string | null;
+  quota?: number | null;
+  maxPerUser?: number | null;
+  expiresAt?: string | null;
   isActive: boolean;
   createdAt: string;
+  redeemedCount?: number;
+  remainingQuota?: number | null;
+  userRedeemedCount?: number;
+  userRemainingQuota?: number | null;
+  isExpired?: boolean;
+  canRedeem?: boolean;
+  reasonDisabled?: string;
 }
 
 export interface ReviewSubmission {
@@ -39,6 +49,7 @@ export interface PointLog {
     usedForConcert?: string | null;
     usedAt?: string | null;
   } | null;
+  review?: ReviewSubmission | null;
   createdAt: string;
 }
 

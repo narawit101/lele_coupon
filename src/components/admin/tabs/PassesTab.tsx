@@ -27,11 +27,17 @@ export interface PassesTabProps {
   onPageChange: (page: number) => void;
   onSearchChange: (search: string) => void;
   onStatusChange: (status: string) => void;
-  onSort: (field: "code" | "reward" | "customer" | "createdAt" | "status") => void;
+  onSort: (
+    field: "code" | "reward" | "customer" | "createdAt" | "status",
+  ) => void;
   onOpenPassDetail: (pass: AdminPass) => void;
   onClosePassModal: () => void;
   onPassConcertInputChange: (val: string) => void;
-  onExecutePassAction: (code: string, action: "USE" | "REVERT", concertName?: string) => Promise<boolean>;
+  onExecutePassAction: (
+    code: string,
+    action: "USE" | "REVERT",
+    concertName?: string,
+  ) => Promise<boolean>;
 
   // Redemption Logs
   codeRedemptions: AdminCodeRedemption[];
@@ -110,8 +116,23 @@ export default function PassesTab({
       key: "reward",
       header: "ของรางวัล",
       sortable: true,
-      className: "whitespace-nowrap text-slate-700 font-medium",
-      render: (p) => p.rewardTitle || "สิทธิ์ลัดคิว",
+      render: (p) => (
+        <div>
+          <div className="font-semibold text-slate-800">
+            {p.rewardTitle || "สิทธิ์ลัดคิว"}
+          </div>
+          <div className="text-[11px] font-latin">
+            {p.promotion?.points !== undefined &&
+            p.promotion?.points !== null ? (
+              <span className="text-slate-500">
+                ใช้ {p.promotion.points} แต้ม
+              </span>
+            ) : (
+              <span className="text-slate-400">โค้ดพิเศษ</span>
+            )}
+          </div>
+        </div>
+      ),
     },
     {
       key: "customer",
@@ -120,7 +141,9 @@ export default function PassesTab({
       className: "whitespace-nowrap",
       render: (p) => (
         <div>
-          <span className="font-semibold text-slate-800">{p.user.displayName}</span>
+          <span className="font-semibold text-slate-800">
+            {p.user.displayName}
+          </span>
           {p.user.xHandle && (
             <span className="text-slate-400 text-[11px] block mt-0.5">
               @{p.user.xHandle}
@@ -143,9 +166,13 @@ export default function PassesTab({
       className: "whitespace-nowrap",
       render: (p) =>
         p.status === "ACTIVE" ? (
-          <span className="text-xs font-semibold text-[#657406]">ยังไม่ใช้งาน</span>
+          <span className="text-xs font-semibold text-[#657406]">
+            รอยืนยันสิทธิ์
+          </span>
         ) : (
-          <span className="text-xs font-semibold text-slate-400">ใช้งานแล้ว</span>
+          <span className="text-xs font-semibold text-slate-400">
+            ใช้งานแล้ว
+          </span>
         ),
     },
   ];
@@ -163,13 +190,20 @@ export default function PassesTab({
       key: "reward",
       header: "ของรางวัล",
       sortable: true,
-      className: "whitespace-nowrap font-medium text-slate-700",
       render: (log) => (
-        <div className="flex items-center gap-1.5">
-          <span>{log.code.rewardTitle}</span>
-          <span className="text-[10px] font-latin px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
-            {log.code.rewardType === "PASS" ? "อื่นๆ" : "แต้ม"}
-          </span>
+        <div>
+          <div className="font-semibold text-slate-800">
+            {log.code.rewardTitle}
+          </div>
+          <div className="text-[11px] font-latin">
+            {log.code.rewardType === "PASS" ? (
+              <span className="text-slate-500">อื่นๆ</span>
+            ) : (
+              <span className="text-slate-500">
+                +{log.code.rewardPoints ?? 0} แต้มสะสม
+              </span>
+            )}
+          </div>
         </div>
       ),
     },
@@ -180,7 +214,9 @@ export default function PassesTab({
       className: "whitespace-nowrap",
       render: (log) => (
         <div>
-          <span className="font-semibold text-slate-800">{log.user.displayName}</span>
+          <span className="font-semibold text-slate-800">
+            {log.user.displayName}
+          </span>
           {log.user.xHandle && (
             <span className="text-slate-400 text-[11px] block mt-0.5">
               @{log.user.xHandle}
@@ -256,7 +292,7 @@ export default function PassesTab({
             onFilterChange={onStatusChange}
             filterOptions={[
               { label: "ทุกสถานะ", value: "ALL" },
-              { label: "ยังไม่ใช้งาน", value: "ACTIVE" },
+              { label: "รอยืนยันสิทธิ์", value: "ACTIVE" },
               { label: "ใช้งานแล้ว", value: "USED" },
             ]}
           />
@@ -270,7 +306,14 @@ export default function PassesTab({
             sortBy={passesSortBy}
             sortOrder={passesSortOrder}
             onSort={(field) =>
-              onSort(field as "code" | "reward" | "customer" | "createdAt" | "status")
+              onSort(
+                field as
+                  | "code"
+                  | "reward"
+                  | "customer"
+                  | "createdAt"
+                  | "status",
+              )
             }
             page={passesPage}
             totalPages={passesTotalPages}

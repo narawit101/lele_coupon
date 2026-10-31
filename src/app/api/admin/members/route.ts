@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getMemberTier, calculateTierFromPoints, TIER_CONFIGS } from "@/lib/tier";
+import {
+  getMemberTier,
+  calculateTierFromPoints,
+  TIER_CONFIGS,
+  checkTierUpgrade,
+} from "@/lib/tier";
 import { getAdminFromRequest } from "@/lib/admin-auth";
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "lele_admin_2026";
@@ -207,10 +212,10 @@ export async function POST(req: NextRequest) {
         ? calculateTierFromPoints(Math.max(updated.lifetimeStamps, updated.stamps))
         : null;
       const targetLabel = isAuto
-          ? `อัตโนมัติ (${autoCalculatedTier ? TIER_CONFIGS[autoCalculatedTier].label : "ตามแต้มสะสม"})`
-          : tierConfig
-            ? tierConfig.label
-            : requestedTierRaw;
+        ? `อัตโนมัติ (${autoCalculatedTier ? TIER_CONFIGS[autoCalculatedTier].label : "ตามแต้มสะสม"})`
+        : tierConfig
+          ? tierConfig.label
+          : requestedTierRaw;
       const logReason = `ปรับระดับสมาชิกเป็น ${targetLabel}${cleanReason ? ` [หมายเหตุ: ${cleanReason}]` : ""
         }`;
 
@@ -229,6 +234,19 @@ export async function POST(req: NextRequest) {
           reason: reason || "ปรับแต้มโดยแอดมิน",
         },
       });
+
+      if (safeAmount > 0) {
+        const upgradedTier = checkTierUpgrade(user, safeAmount);
+        if (upgradedTier) {
+          await tx.pointLog.create({
+            data: {
+              userId: user.id,
+              amount: 0,
+              reason: `ปรับระดับสมาชิกเป็น อัตโนมัติ (${TIER_CONFIGS[upgradedTier].label})`,
+            },
+          });
+        }
+      }
     }
 
     return [updated];
