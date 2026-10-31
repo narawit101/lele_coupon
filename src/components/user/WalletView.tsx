@@ -70,9 +70,7 @@ export default function WalletView({
       <div className="bg-white rounded-[20px] p-4 sm:p-5 border border-[#D0DEF7] shadow-2xs space-y-3.5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-base font-bold text-[#25384C]">
-              คูปองสิทธิ์ลัดคิวของฉัน
-            </h2>
+            <h2 className="text-base font-bold text-[#25384C]">คูปองของฉัน</h2>
             <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
               แจ้งรหัสคูปองเมื่อทักจองคิวทางร้านผ่าน X:{" "}
               <a
