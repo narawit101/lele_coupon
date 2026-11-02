@@ -29,6 +29,8 @@ export interface AdminReview {
     xHandle?: string;
     phone?: string;
     stamps: number;
+    tier?: string | null;
+    lifetimeStamps?: number;
   };
 }
 
@@ -50,6 +52,7 @@ export interface AdminMember {
   displayName: string;
   avatarUrl?: string;
   xHandle?: string;
+  email?: string;
   phone?: string;
   stamps: number;
   tier?: string | null;

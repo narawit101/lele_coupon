@@ -2,14 +2,13 @@
 
 import React, { useCallback, useMemo, useState } from "react";
 import Image from "next/image";
-import { Copy, Pencil, Trash2, Wrench } from "lucide-react";
+import { Copy, Settings, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { getMemberTier } from "@/lib/tier";
 import AdminFilterBar from "../AdminFilterBar";
 import AdminDataTable, { ColumnDef } from "../AdminDataTable";
 import ManageMemberModal from "../modals/ManageMemberModal";
 import EditAdminModal from "../modals/EditAdminModal";
-import NewAdminModal from "../modals/NewAdminModal";
 import { AdminMember, AdminProfile, ConfirmModalConfig } from "../types";
 
 export interface MembersTabProps {
@@ -38,15 +37,15 @@ export interface MembersTabProps {
   tierReason: string;
   tierSubmitting: boolean;
   showEditAdminModal: boolean;
-  editingAdmin: { id: string; name: string; role?: string } | null;
+  editingAdmin: {
+    id: string;
+    name: string;
+    email?: string;
+    role?: string;
+  } | null;
   editAdminName: string;
+  editAdminEmail: string;
   savingEditAdmin: boolean;
-  showNewAdminModal: boolean;
-  newAdminEmail: string;
-  newAdminName: string;
-  newAdminPasswordMode: "DEFAULT" | "CUSTOM";
-  newAdminPassword: string;
-  savingNewAdmin: boolean;
   onPageChange: (page: number) => void;
   onSearchChange: (search: string) => void;
   onSort: (field: "displayName" | "xHandle" | "stamps" | "passes") => void;
@@ -61,18 +60,25 @@ export interface MembersTabProps {
   onAdjustTierChange: (tier: string) => void;
   onTierReasonChange: (reason: string) => void;
   onTierSubmit: (e: React.FormEvent) => void;
-  onOpenEditAdmin: (admin: { id: string; name: string; role?: string }) => void;
+  onOpenEditAdmin: (admin: {
+    id: string;
+    name: string;
+    email?: string;
+    role?: string;
+  }) => void;
   onCloseEditAdmin: () => void;
   onEditAdminNameChange: (name: string) => void;
+  onEditAdminEmailChange: (email: string) => void;
   onSaveAdminName: (e: React.FormEvent) => void;
+  onUpdateProfile?: (data: {
+    userId: string;
+    displayName: string;
+    xHandle?: string | null;
+    avatarUrl?: string | null;
+  }) => Promise<boolean>;
   onDeleteAdmin: (adminId: string) => Promise<boolean>;
+  onDeleteUser: (userId: string) => Promise<boolean>;
   onOpenNewAdmin: () => void;
-  onCloseNewAdmin: () => void;
-  onNewAdminEmailChange: (email: string) => void;
-  onNewAdminNameChange: (name: string) => void;
-  onNewAdminPasswordModeChange: (mode: "DEFAULT" | "CUSTOM") => void;
-  onNewAdminPasswordChange: (val: string) => void;
-  onCreateAdmin: (e: React.FormEvent) => void;
   openConfirmModal: (config: ConfirmModalConfig) => void;
 }
 
@@ -104,13 +110,8 @@ export default function MembersTab({
   showEditAdminModal,
   editingAdmin,
   editAdminName,
+  editAdminEmail,
   savingEditAdmin,
-  showNewAdminModal,
-  newAdminEmail,
-  newAdminName,
-  newAdminPasswordMode,
-  newAdminPassword,
-  savingNewAdmin,
   onPageChange,
   onSearchChange,
   onSort,
@@ -128,15 +129,12 @@ export default function MembersTab({
   onOpenEditAdmin,
   onCloseEditAdmin,
   onEditAdminNameChange,
+  onEditAdminEmailChange,
   onSaveAdminName,
+  onUpdateProfile,
   onDeleteAdmin,
+  onDeleteUser,
   onOpenNewAdmin,
-  onCloseNewAdmin,
-  onNewAdminEmailChange,
-  onNewAdminNameChange,
-  onNewAdminPasswordModeChange,
-  onNewAdminPasswordChange,
-  onCreateAdmin,
   openConfirmModal,
 }: MembersTabProps) {
   const [manageUser, setManageUser] = useState<AdminMember | null>(null);
@@ -170,6 +168,21 @@ export default function MembersTab({
     [openConfirmModal, onDeleteAdmin],
   );
 
+  const promptDeleteUser = useCallback(
+    (userId: string, userName: string, stamps: number) => {
+      openConfirmModal({
+        title: "ยืนยันการลบสมาชิก",
+        message: `คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิก "${userName}" (แต้มสะสม: ${stamps} แต้ม)? การดำเนินการนี้จะลบข้อมูลและประวัติทั้งหมดของสมาชิกรายนี้อย่างถาวร`,
+        confirmText: "ลบสมาชิก",
+        isDestructive: true,
+        onConfirm: async () => {
+          await onDeleteUser(userId);
+        },
+      });
+    },
+    [openConfirmModal, onDeleteUser],
+  );
+
   const memberColumns: ColumnDef<AdminMember>[] = useMemo(() => {
     if (membersSubTab === "ADMINS") {
       return [
@@ -191,27 +204,11 @@ export default function MembersTab({
                 />
               ) : (
                 <div className="w-9 h-9 rounded-full bg-[#D0DEF7]/40 border border-[#D0DEF7] flex items-center justify-center text-xs font-bold text-[#25384C] shrink-0 shadow-2xs">
-                  {m.displayName?.slice(0, 2).toUpperCase() || "MB"}
+                  {m.displayName?.trim().slice(0, 1).toUpperCase() || "A"}
                 </div>
               )}
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="leading-tight">{m.displayName}</span>
-                {!(m.role === "DEV" && adminProfile?.role !== "DEV") && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onOpenEditAdmin({
-                        id: m.id,
-                        name: m.displayName,
-                        role: m.role,
-                      })
-                    }
-                    title="คลิกเพื่อแก้ไขชื่อแอดมิน"
-                    className="w-5 h-5 rounded-md hover:bg-[#D0DEF7]/40 text-slate-400 hover:text-[#25384C] border border-transparent hover:border-[#D0DEF7] inline-flex items-center justify-center transition cursor-pointer active:scale-95"
-                  >
-                    <Pencil className="w-2.5 h-2.5 shrink-0" />
-                  </button>
-                )}
                 {m.isAdmin && m.id === adminProfile?.id && (
                   <span className="text-[10px] text-slate-400 font-normal">
                     (คุณ)
@@ -242,28 +239,58 @@ export default function MembersTab({
           header: "การจัดการ",
           align: "right",
           className: "whitespace-nowrap",
-          render: (m) => (
-            <div className="flex items-center justify-end">
-              {m.id !== adminProfile?.id &&
-              m.role !== "DEV" &&
+          render: (m) => {
+            const canEdit =
+            (m.id === adminProfile?.id &&
               (adminProfile?.role === "DEV" ||
-                adminProfile?.role === "OWNER") ? (
-                <button
-                  type="button"
-                  onClick={() =>
-                    promptDeleteAdmin(m.id, m.displayName, m.xHandle || "")
-                  }
-                  title="ลบสิทธิ์แอดมิน"
-                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs text-[#B01444] hover:text-[#800C30] bg-rose-50 hover:bg-rose-100/80 border border-rose-200/80 rounded-lg font-medium transition cursor-pointer shadow-2xs active:scale-95"
-                >
-                  <Trash2 className="w-3 h-3 shrink-0" />
-                  <span>ลบ</span>
-                </button>
-              ) : (
-                <span className="text-[11px] text-slate-400 pr-2">-</span>
-              )}
-            </div>
-          ),
+                adminProfile?.role === "OWNER")) ||
+              (m.id !== adminProfile?.id &&
+                !(m.role === "DEV" && adminProfile?.role !== "DEV") &&
+                (adminProfile?.role === "DEV" ||
+                  adminProfile?.role === "OWNER"));
+            const canDelete =
+              m.id !== adminProfile?.id &&
+              m.role !== "DEV" &&
+              (adminProfile?.role === "DEV" || adminProfile?.role === "OWNER");
+
+            if (!canEdit && !canDelete) {
+              return <span className="text-[11px] text-slate-400 pr-2">-</span>;
+            }
+
+            return (
+              <div className="flex items-center justify-end gap-1.5">
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onOpenEditAdmin({
+                        id: m.id,
+                        name: m.displayName,
+                        email: m.email || m.xHandle,
+                        role: m.role,
+                      })
+                    }
+                    title="แก้ไขข้อมูลแอดมิน"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-[#25384C] hover:bg-slate-100 border border-slate-200/80 transition cursor-pointer shadow-2xs active:scale-95"
+                  >
+                    <Settings className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                {canDelete && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      promptDeleteAdmin(m.id, m.displayName, m.xHandle || "")
+                    }
+                    title="ลบสิทธิ์แอดมิน"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-[#B01444] hover:bg-rose-50 border border-slate-200/80 hover:border-rose-200 transition cursor-pointer shadow-2xs active:scale-95"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            );
+          },
         },
       ];
     }
@@ -300,8 +327,8 @@ export default function MembersTab({
                       className="object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-[#25384C]">
-                      {m.displayName?.slice(0, 2).toUpperCase() || "MB"}
+                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-[#25384C]">
+                      {m.displayName?.trim().slice(0, 1).toUpperCase() || "M"}
                     </div>
                   )}
                 </div>
@@ -397,15 +424,26 @@ export default function MembersTab({
         align: "right",
         className: "whitespace-nowrap",
         render: (m) => (
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-end gap-1.5">
             <button
               type="button"
               onClick={() => handleOpenManage(m)}
               title="จัดการสมาชิก (ปรับแต้ม / ปรับระดับ)"
               className="p-1.5 rounded-lg text-slate-400 hover:text-[#25384C] hover:bg-slate-100 border border-slate-200/80 transition cursor-pointer shadow-2xs active:scale-95"
             >
-              <Wrench className="w-3.5 h-3.5" />
+              <Settings className="w-3.5 h-3.5" />
             </button>
+            {(adminProfile?.role === "DEV" ||
+              adminProfile?.role === "OWNER") && (
+              <button
+                type="button"
+                onClick={() => promptDeleteUser(m.id, m.displayName, m.stamps)}
+                title="ลบสมาชิก"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-[#B01444] hover:bg-rose-50 border border-slate-200/80 hover:border-rose-200 transition cursor-pointer shadow-2xs active:scale-95"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         ),
       },
@@ -416,6 +454,7 @@ export default function MembersTab({
     adminProfile?.role,
     onOpenEditAdmin,
     promptDeleteAdmin,
+    promptDeleteUser,
     handleOpenManage,
   ]);
 
@@ -432,7 +471,7 @@ export default function MembersTab({
               : "bg-white text-slate-600 hover:bg-[#FAF8F2] border border-[#D0DEF7]"
           }`}
         >
-          <span>ข้อมูลลูกค้า</span>
+          <span>ลูกค้า</span>
           <span
             className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold font-latin ${
               membersSubTab === "CUSTOMERS"
@@ -453,7 +492,7 @@ export default function MembersTab({
               : "bg-white text-slate-600 hover:bg-[#FAF8F2] border border-[#D0DEF7]"
           }`}
         >
-          <span>จัดการแอดมิน</span>
+          <span>แอดมิน</span>
           <span
             className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold font-latin ${
               membersSubTab === "ADMINS"
@@ -523,7 +562,7 @@ export default function MembersTab({
         onPageChange={onPageChange}
       />
 
-      {/* Manage Member Modal (Adjust Stamps & Tier) */}
+      {/* Manage Member Modal (Adjust Stamps, Tier & Edit Profile) */}
       <ManageMemberModal
         user={manageUser || adjustModalUser || tierModalUser}
         onClose={handleCloseManage}
@@ -541,6 +580,7 @@ export default function MembersTab({
         setTierReason={onTierReasonChange}
         tierSubmitting={tierSubmitting}
         onTierSubmit={onTierSubmit}
+        onUpdateProfile={onUpdateProfile}
       />
 
       {/* Edit Admin Modal */}
@@ -552,6 +592,7 @@ export default function MembersTab({
             ? {
                 id: editingAdmin.id,
                 displayName: editingAdmin.name,
+                email: editingAdmin.email,
                 role: editingAdmin.role,
                 createdAt: "",
                 stamps: 0,
@@ -562,24 +603,10 @@ export default function MembersTab({
         adminProfile={adminProfile}
         adminName={editAdminName}
         setAdminName={onEditAdminNameChange}
+        adminEmail={editAdminEmail}
+        setAdminEmail={onEditAdminEmailChange}
         saving={savingEditAdmin}
         onSave={onSaveAdminName}
-      />
-
-      {/* New Admin Modal */}
-      <NewAdminModal
-        isOpen={showNewAdminModal}
-        onClose={onCloseNewAdmin}
-        email={newAdminEmail}
-        setEmail={onNewAdminEmailChange}
-        name={newAdminName}
-        setName={onNewAdminNameChange}
-        passwordMode={newAdminPasswordMode}
-        setPasswordMode={onNewAdminPasswordModeChange}
-        password={newAdminPassword}
-        setPassword={onNewAdminPasswordChange}
-        saving={savingNewAdmin}
-        onSubmit={onCreateAdmin}
       />
     </div>
   );

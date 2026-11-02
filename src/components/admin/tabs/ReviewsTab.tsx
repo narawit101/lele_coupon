@@ -2,8 +2,9 @@
 
 import React from "react";
 import Image from "next/image";
-import { ExternalLink, User as UserIcon } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { formatThaiDateTime } from "@/lib/date";
+import { getMemberTier } from "@/lib/tier";
 import AdminFilterBar from "../AdminFilterBar";
 import AdminDataTable, { ColumnDef } from "../AdminDataTable";
 import InspectReviewModal from "../modals/InspectReviewModal";
@@ -16,7 +17,7 @@ export interface ReviewsTabProps {
   reviewsTotalPages: number;
   reviewsSearch: string;
   reviewsStatus: string;
-  reviewsSortBy: "concertName" | "customer" | "createdAt" | "status";
+  reviewsSortBy: "concertName" | "customer" | "xHandle" | "createdAt" | "status";
   reviewsSortOrder: "asc" | "desc";
   reviewsLoading: boolean;
   inspectingReview: AdminReview | null;
@@ -24,7 +25,7 @@ export interface ReviewsTabProps {
   onPageChange: (page: number) => void;
   onSearchChange: (search: string) => void;
   onStatusChange: (status: string) => void;
-  onSort: (field: "concertName" | "customer" | "createdAt" | "status") => void;
+  onSort: (field: "concertName" | "customer" | "xHandle" | "createdAt" | "status") => void;
   onOpenDetail: (review: AdminReview) => void;
   onCloseDetail: () => void;
   onExecuteAction: (
@@ -105,47 +106,87 @@ export default function ReviewsTab({
       key: "customer",
       header: "ข้อมูลลูกค้า",
       sortable: true,
-      render: (rev) => (
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-[#D0DEF7]/50 border border-[#D0DEF7] flex items-center justify-center overflow-hidden shrink-0">
-            {rev.user.avatarUrl ? (
-              <Image
-                src={rev.user.avatarUrl}
-                alt={rev.user.displayName}
-                width={32}
-                height={32}
-                unoptimized
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <UserIcon className="w-4 h-4 text-[#5284B7]" />
-            )}
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span
-              className="font-semibold text-slate-800 text-xs truncate max-w-30 sm:max-w-37.5 block"
-              title={rev.user.displayName}
-            >
-              {rev.user.displayName}
-            </span>
-            {(rev.xHandle || rev.user.xHandle) && (
-              <a
-                href={`https://x.com/${rev.xHandle || rev.user.xHandle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="text-[11px] text-[#315F91] hover:underline font-latin flex items-center gap-0.5 truncate max-w-30 sm:max-w-37.5"
-                title={`@${rev.xHandle || rev.user.xHandle}`}
+      render: (rev) => {
+        const t = getMemberTier(rev.user);
+        return (
+          <div className="flex items-center gap-2.5">
+            {/* Avatar with Tier Frame Overlay */}
+            <div className="relative shrink-0 flex items-center justify-center w-10 h-10">
+              <div
+                className="absolute rounded-full overflow-hidden bg-[#FAF8F2] z-0 shadow-inner"
+                style={{
+                  top: t.avatarMetrics.top,
+                  left: t.avatarMetrics.left,
+                  width: t.avatarMetrics.size,
+                  height: t.avatarMetrics.size,
+                  transform: "translate(-50%, -50%)",
+                }}
               >
-                <span className="truncate">
-                  @{rev.xHandle || rev.user.xHandle}
-                </span>
-                <ExternalLink className="w-2.5 h-2.5 shrink-0" />
-              </a>
-            )}
+                {rev.user.avatarUrl ? (
+                  <Image
+                    src={rev.user.avatarUrl}
+                    alt={rev.user.displayName}
+                    fill
+                    unoptimized
+                    sizes="40px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-xs font-bold text-[#25384C]">
+                    {rev.user.displayName?.trim().slice(0, 1).toUpperCase() || "M"}
+                  </div>
+                )}
+              </div>
+
+              {t.frameImage && (
+                <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
+                  <Image
+                    src={t.frameImage}
+                    alt={t.label}
+                    width={40}
+                    height={40}
+                    unoptimized
+                    className="w-full h-full object-contain pointer-events-none select-none drop-shadow-xs"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="min-w-0">
+              <span
+                className="font-semibold text-slate-800 text-xs truncate max-w-30 sm:max-w-40 block"
+                title={rev.user.displayName}
+              >
+                {rev.user.displayName}
+              </span>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
+    },
+    {
+      key: "xHandle",
+      header: "บัญชี X",
+      sortable: true,
+      className: "text-slate-600 whitespace-nowrap",
+      render: (rev) => {
+        const handle = rev.xHandle || rev.user.xHandle;
+        return handle ? (
+          <a
+            href={`https://x.com/${handle}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-xs text-[#315F91] hover:underline font-latin inline-flex items-center gap-1 font-medium"
+            title={`@${handle}`}
+          >
+            <span>@{handle}</span>
+            <ExternalLink className="w-3 h-3 shrink-0" />
+          </a>
+        ) : (
+          <span className="text-slate-400 text-xs">-</span>
+        );
+      },
     },
     {
       key: "createdAt",

@@ -51,9 +51,11 @@ export function useAdminMembers({
   const [editingAdmin, setEditingAdmin] = useState<{
     id: string;
     name: string;
+    email?: string;
     role?: string;
   } | null>(null);
   const [editAdminName, setEditAdminName] = useState("");
+  const [editAdminEmail, setEditAdminEmail] = useState("");
   const [savingEditAdmin, setSavingEditAdmin] = useState(false);
 
   // New Admin Modal
@@ -241,218 +243,288 @@ export function useAdminMembers({
     }
   };
 
-  const openEditAdmin = (admin: { id: string; name: string; role?: string }) => {
-    setEditingAdmin(admin);
-    setEditAdminName(admin.name);
-    setShowEditAdminModal(true);
-  };
+    const openEditAdmin = (admin: { id: string; name: string; email?: string; role?: string }) => {
+      setEditingAdmin(admin);
+      setEditAdminName(admin.name);
+      setEditAdminEmail(admin.email || "");
+      setShowEditAdminModal(true);
+    };
 
-  const closeEditAdminModal = () => {
-    setShowEditAdminModal(false);
-    setEditingAdmin(null);
-    setEditAdminName("");
-  };
+    const closeEditAdminModal = () => {
+      setShowEditAdminModal(false);
+      setEditingAdmin(null);
+      setEditAdminName("");
+      setEditAdminEmail("");
+    };
 
-  const handleSaveAdminName = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editAdminName.trim()) {
-      toast.error("กรุณาระบุชื่อแอดมิน");
-      return;
-    }
+    const handleSaveAdminName = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!editAdminName.trim()) {
+        toast.error("กรุณาระบุชื่อแอดมิน");
+        return;
+      }
 
-    if (editingAdmin?.role === "DEV" && adminProfile?.role !== "DEV") {
-      toast.error("ไม่อนุญาตให้แก้ไขชื่อบัญชี Developer");
-      return;
-    }
+      if (adminProfile?.role === "DEV" && !editAdminEmail.trim()) {
+        toast.error("กรุณาระบุอีเมล");
+        return;
+      }
 
-    setSavingEditAdmin(true);
-    try {
-      const isSelf = editingAdmin?.id === adminProfile?.id;
-      if (isSelf) {
-        const res = await adminFetch("/api/admin/profile", {
-          method: "PATCH",
-          token: adminToken,
-          json: { name: editAdminName.trim() },
-        });
+      if (editingAdmin?.role === "DEV" && adminProfile?.role !== "DEV") {
+        toast.error("ไม่อนุญาตให้แก้ไขชื่อบัญชี Developer");
+        return;
+      }
 
-        if (res.ok) {
-          const data = await res.json();
-          if (onProfileUpdate) onProfileUpdate(data.admin);
-          localStorage.setItem("lele_admin_profile", JSON.stringify(data.admin));
-          toast.success("แก้ไขชื่อแอดมินเรียบร้อยแล้ว");
-          closeEditAdminModal();
-          fetchMembers();
-        } else {
-          const err = await res.json();
-          toast.error(err.error || "แก้ไขชื่อไม่สำเร็จ");
+      setSavingEditAdmin(true);
+      try {
+        const isSelf = editingAdmin?.id === adminProfile?.id;
+        if (isSelf) {
+          const res = await adminFetch("/api/admin/profile", {
+            method: "PATCH",
+            token: adminToken,
+            json: {
+              name: editAdminName.trim(),
+              ...(adminProfile?.role === "DEV" && editAdminEmail.trim()
+                ? { email: editAdminEmail.trim() }
+                : {}),
+            },
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (onProfileUpdate) onProfileUpdate(data.admin);
+            localStorage.setItem("lele_admin_profile", JSON.stringify(data.admin));
+            toast.success("แก้ไขข้อมูลแอดมินเรียบร้อยแล้ว");
+            closeEditAdminModal();
+            fetchMembers();
+          } else {
+            const err = await res.json();
+            toast.error(err.error || "แก้ไขข้อมูลไม่สำเร็จ");
+          }
+        } else if (editingAdmin) {
+          const res = await adminFetch("/api/admin/members", {
+            method: "PATCH",
+            token: adminToken,
+            json: {
+              adminId: editingAdmin.id,
+              name: editAdminName.trim(),
+              ...(adminProfile?.role === "DEV" && editAdminEmail.trim()
+                ? { email: editAdminEmail.trim() }
+                : {}),
+            },
+          });
+
+          if (res.ok) {
+            toast.success("แก้ไขข้อมูลแอดมินเรียบร้อยแล้ว");
+            closeEditAdminModal();
+            fetchMembers();
+          } else {
+            const err = await res.json();
+            toast.error(err.error || "แก้ไขข้อมูลไม่สำเร็จ");
+          }
         }
-      } else if (editingAdmin) {
+      } catch {
+        toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+      } finally {
+        setSavingEditAdmin(false);
+      }
+    };
+
+    const handleSaveUserProfile = async (data: {
+      userId: string;
+      displayName: string;
+      xHandle?: string | null;
+      avatarUrl?: string | null;
+    }): Promise<boolean> => {
+      try {
         const res = await adminFetch("/api/admin/members", {
           method: "PATCH",
           token: adminToken,
-          json: {
-            adminId: editingAdmin.id,
-            name: editAdminName.trim(),
-          },
+          json: data,
         });
 
         if (res.ok) {
-          toast.success("แก้ไขชื่อแอดมินเรียบร้อยแล้ว");
-          closeEditAdminModal();
-          fetchMembers();
+          toast.success("บันทึกข้อมูลสมาชิกเรียบร้อยแล้ว");
+          await fetchMembers();
+          if (onRefreshAll) await onRefreshAll();
+          return true;
         } else {
           const err = await res.json();
-          toast.error(err.error || "แก้ไขชื่อไม่สำเร็จ");
+          toast.error(err.error || "บันทึกข้อมูลสมาชิกไม่สำเร็จ");
+          return false;
         }
-      }
-    } catch {
-      toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ");
-    } finally {
-      setSavingEditAdmin(false);
-    }
-  };
-
-  const executeDeleteAdmin = async (adminId: string) => {
-    try {
-      const res = await adminFetch(`/api/admin/members?adminId=${adminId}`, {
-        method: "DELETE",
-        token: adminToken,
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success(data.message || `ลบบัญชีแอดมินเรียบร้อยแล้ว`);
-        await fetchMembers();
-        if (onRefreshAll) await onRefreshAll();
-        return true;
-      } else {
-        toast.error(data.error || "ลบบัญชีแอดมินไม่สำเร็จ");
+      } catch {
+        toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ");
         return false;
       }
-    } catch {
-      toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ");
-      return false;
-    }
-  };
+    };
 
-  const openNewAdmin = () => {
-    setNewAdminEmail("");
-    setNewAdminName("");
-    setNewAdminPasswordMode("DEFAULT");
-    setNewAdminPassword("");
-    setShowNewAdminModal(true);
-  };
-
-  const closeNewAdminModal = () => {
-    setShowNewAdminModal(false);
-    setNewAdminEmail("");
-    setNewAdminName("");
-    setNewAdminPasswordMode("DEFAULT");
-    setNewAdminPassword("");
-  };
-
-  const handleCreateAdmin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newAdminPasswordMode === "CUSTOM") {
-      const pwd = newAdminPassword.trim();
-      if (pwd.length < 8) {
-        toast.error("รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร");
-        return;
+    const executeDeleteAdmin = async (adminId: string) => {
+      try {
+        const res = await adminFetch(`/api/admin/members?adminId=${adminId}`, {
+          method: "DELETE",
+          token: adminToken,
+        });
+        const data = await res.json();
+        if (res.ok) {
+          toast.success(data.message || `ลบบัญชีแอดมินเรียบร้อยแล้ว`);
+          await fetchMembers();
+          if (onRefreshAll) await onRefreshAll();
+          return true;
+        } else {
+          toast.error(data.error || "ลบบัญชีแอดมินไม่สำเร็จ");
+          return false;
+        }
+      } catch {
+        toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+        return false;
       }
-      if (!/[a-zA-Z]/.test(pwd) || !/[0-9]/.test(pwd)) {
-        toast.error("รหัสผ่านต้องประกอบด้วยตัวอักษรภาษาอังกฤษและตัวเลข");
-        return;
+    };
+
+    const executeDeleteUser = async (userId: string) => {
+      try {
+        const res = await adminFetch(`/api/admin/members?userId=${userId}`, {
+          method: "DELETE",
+          token: adminToken,
+        });
+        const data = await res.json();
+        if (res.ok) {
+          toast.success(data.message || `ลบสมาชิกเรียบร้อยแล้ว`);
+          await fetchMembers();
+          if (onRefreshAll) await onRefreshAll();
+          return true;
+        } else {
+          toast.error(data.error || "ลบสมาชิกไม่สำเร็จ");
+          return false;
+        }
+      } catch {
+        toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+        return false;
       }
-    }
+    };
 
-    setSavingNewAdmin(true);
-    try {
-      const res = await adminFetch("/api/admin/create-admin", {
-        method: "POST",
-        token: adminToken,
-        json: {
-          email: newAdminEmail.trim().toLowerCase(),
-          name: newAdminName.trim(),
-          password: newAdminPasswordMode === "CUSTOM" ? newAdminPassword.trim() : undefined,
-        },
-      });
+    const openNewAdmin = () => {
+      setNewAdminEmail("");
+      setNewAdminName("");
+      setNewAdminPasswordMode("DEFAULT");
+      setNewAdminPassword("");
+      setShowNewAdminModal(true);
+    };
 
-      const data = await res.json();
-      if (res.ok) {
-        toast.success(data.message || "สร้างบัญชีแอดมินสำเร็จ");
-        closeNewAdminModal();
-        await fetchMembers();
-        if (onRefreshAll) await onRefreshAll();
-      } else {
-        toast.error(data.error || "สร้างบัญชีแอดมินไม่สำเร็จ");
+    const closeNewAdminModal = () => {
+      setShowNewAdminModal(false);
+      setNewAdminEmail("");
+      setNewAdminName("");
+      setNewAdminPasswordMode("DEFAULT");
+      setNewAdminPassword("");
+    };
+
+    const handleCreateAdmin = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (newAdminPasswordMode === "CUSTOM") {
+        const pwd = newAdminPassword.trim();
+        if (pwd.length < 8) {
+          toast.error("รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร");
+          return;
+        }
+        if (!/[a-zA-Z]/.test(pwd) || !/[0-9]/.test(pwd)) {
+          toast.error("รหัสผ่านต้องประกอบด้วยตัวอักษรภาษาอังกฤษและตัวเลข");
+          return;
+        }
       }
-    } catch {
-      toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ");
-    } finally {
-      setSavingNewAdmin(false);
-    }
-  };
 
-  return {
-    membersSubTab,
-    setMembersSubTab: handleSubTabChange,
-    customersTotal,
-    adminsTotal,
-    members,
-    membersTotal,
-    membersPage,
-    membersTotalPages,
-    membersSearch,
-    membersStatus,
-    membersSortBy,
-    membersSortOrder,
-    membersLoading,
-    membersTierFilter,
-    setMembersTierFilter,
-    adjustModalUser,
-    adjustMode,
-    adjustAmount,
-    adjustReason,
-    adjustSubmitting,
-    tierModalUser,
-    adjustTier,
-    tierReason,
-    tierSubmitting,
-    showEditAdminModal,
-    editingAdmin,
-    editAdminName,
-    savingEditAdmin,
-    showNewAdminModal,
-    newAdminEmail,
-    newAdminName,
-    newAdminPasswordMode,
-    newAdminPassword,
-    savingNewAdmin,
-    setMembersPage,
-    setMembersSearch,
-    setAdjustMode,
-    setAdjustAmount,
-    setAdjustReason,
-    setAdjustTier,
-    setTierReason,
-    setEditAdminName,
-    setNewAdminEmail,
-    setNewAdminName,
-    setNewAdminPasswordMode,
-    setNewAdminPassword,
-    handleSortMembers,
-    openAdjustModal,
-    closeAdjustModal,
-    handleAdjustStamps,
-    openTierModal,
-    closeTierModal,
-    handleSaveTier,
-    openEditAdmin,
-    closeEditAdminModal,
-    handleSaveAdminName,
-    executeDeleteAdmin,
-    openNewAdmin,
-    closeNewAdminModal,
-    handleCreateAdmin,
-    fetchMembers,
-  };
-}
+      setSavingNewAdmin(true);
+      try {
+        const res = await adminFetch("/api/admin/create-admin", {
+          method: "POST",
+          token: adminToken,
+          json: {
+            email: newAdminEmail.trim().toLowerCase(),
+            name: newAdminName.trim(),
+            password: newAdminPasswordMode === "CUSTOM" ? newAdminPassword.trim() : undefined,
+          },
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          toast.success(data.message || "สร้างบัญชีแอดมินสำเร็จ");
+          closeNewAdminModal();
+          await fetchMembers();
+          if (onRefreshAll) await onRefreshAll();
+        } else {
+          toast.error(data.error || "สร้างบัญชีแอดมินไม่สำเร็จ");
+        }
+      } catch {
+        toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+      } finally {
+        setSavingNewAdmin(false);
+      }
+    };
+
+    return {
+      membersSubTab,
+      setMembersSubTab: handleSubTabChange,
+      customersTotal,
+      adminsTotal,
+      members,
+      membersTotal,
+      membersPage,
+      membersTotalPages,
+      membersSearch,
+      membersStatus,
+      membersSortBy,
+      membersSortOrder,
+      membersLoading,
+      membersTierFilter,
+      setMembersTierFilter,
+      adjustModalUser,
+      adjustMode,
+      adjustAmount,
+      adjustReason,
+      adjustSubmitting,
+      tierModalUser,
+      adjustTier,
+      tierReason,
+      tierSubmitting,
+      showEditAdminModal,
+      editingAdmin,
+      editAdminName,
+      editAdminEmail,
+      savingEditAdmin,
+      showNewAdminModal,
+      newAdminEmail,
+      newAdminName,
+      newAdminPasswordMode,
+      newAdminPassword,
+      savingNewAdmin,
+      setMembersPage,
+      setMembersSearch,
+      setAdjustMode,
+      setAdjustAmount,
+      setAdjustReason,
+      setAdjustTier,
+      setTierReason,
+      setEditAdminName,
+      setEditAdminEmail,
+      setNewAdminEmail,
+      setNewAdminName,
+      setNewAdminPasswordMode,
+      setNewAdminPassword,
+      handleSortMembers,
+      openAdjustModal,
+      closeAdjustModal,
+      handleAdjustStamps,
+      openTierModal,
+      closeTierModal,
+      handleSaveTier,
+      openEditAdmin,
+      closeEditAdminModal,
+      handleSaveAdminName,
+      handleSaveUserProfile,
+      executeDeleteAdmin,
+      executeDeleteUser,
+      openNewAdmin,
+      closeNewAdminModal,
+      handleCreateAdmin,
+      fetchMembers,
+    };
+  }

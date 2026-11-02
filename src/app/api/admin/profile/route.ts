@@ -11,7 +11,34 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, avatarUrl } = await req.json();
+    const { name, email, avatarUrl } = await req.json();
+
+    let normalizedEmail: string | undefined;
+    if (email !== undefined && email.trim().toLowerCase() !== adminSession.email.toLowerCase()) {
+      if (adminSession.role !== "DEV") {
+        return NextResponse.json(
+          { error: "เฉพาะ Developer เท่านั้นที่สามารถแก้ไขอีเมลได้" },
+          { status: 403 }
+        );
+      }
+      const targetEmail = email.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(targetEmail)) {
+        return NextResponse.json(
+          { error: "รูปแบบอีเมลไม่ถูกต้อง" },
+          { status: 400 }
+        );
+      }
+      normalizedEmail = targetEmail;
+      const existing = await prisma.admin.findUnique({
+        where: { email: targetEmail },
+      });
+      if (existing && existing.id !== adminSession.id) {
+        return NextResponse.json(
+          { error: "อีเมลนี้มีอยู่ในระบบแล้ว กรุณาใช้อีเมลอื่น" },
+          { status: 400 }
+        );
+      }
+    }
 
     // If updating avatarUrl, delete the previous image from Cloudinary to save storage
     if (avatarUrl !== undefined) {
@@ -34,6 +61,7 @@ export async function PATCH(req: NextRequest) {
       where: { id: adminSession.id },
       data: {
         ...(name && { name: name.trim() }),
+        ...(normalizedEmail && { email: normalizedEmail }),
         ...(avatarUrl !== undefined && { avatarUrl: avatarUrl ? avatarUrl.trim() : null }),
       },
     });

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-
+import BaseModal from "@/components/BaseModal";
 import { AdminMember } from "../types";
 
 export interface AdjustStampsModalProps {
@@ -37,33 +37,14 @@ export default function AdjustStampsModal({
   const submitBgColor = adjustMode === "DEDUCT" ? "#B01444" : "#2D7058";
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-[#25384C]/60 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
-      onClick={() => {
-        if (!submitting) onClose();
-      }}
+    <BaseModal
+      isOpen={!!user}
+      onClose={onClose}
+      title={`ปรับแต้มสะสม: ${user.displayName}`}
+      maxWidth="max-w-sm"
+      closeDisabled={submitting}
+      bodyClassName="space-y-4 pt-4"
     >
-      <div
-        className="w-full max-w-sm bg-white rounded-xl p-5 sm:p-6 shadow-xl border border-[#D0DEF7] cursor-default animate-in fade-in zoom-in-95 duration-100 space-y-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 pb-3 border-b border-[#D0DEF7]/60">
-          <div className="min-w-0">
-            <h3 className="text-sm font-bold text-[#25384C] truncate">
-              ปรับแต้มสะสม: {user.displayName}
-            </h3>
-          </div>
-          <button
-            type="button"
-            disabled={submitting}
-            onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer text-sm font-bold shrink-0 disabled:opacity-50"
-            title="ปิด"
-          >
-            ✕
-          </button>
-        </div>
 
         {/* Mode Switch (Segmented Control) */}
         <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-lg gap-1 text-xs">
@@ -274,7 +255,6 @@ export default function AdjustStampsModal({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

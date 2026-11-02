@@ -28,8 +28,6 @@ export default function RedeemCodeModal({
     passCode?: string;
   } | null>(null);
 
-  if (!isOpen) return null;
-
   const handleClose = () => {
     if (redeemingCode) return;
     setSpecialCodeInput("");
@@ -76,6 +74,8 @@ export default function RedeemCodeModal({
       setRedeemingCode(false);
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <BaseModal

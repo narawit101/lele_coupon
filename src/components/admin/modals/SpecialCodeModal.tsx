@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { toast } from "react-toastify";
+import BaseModal from "@/components/BaseModal";
 import { AdminSpecialCode } from "../types";
 import { generateSpecialCode } from "../hooks/useAdminPromotions";
 
@@ -66,35 +67,19 @@ export default function SpecialCodeModal({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-[#25384C]/60 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
-      onClick={onClose}
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={editingCode ? "แก้ไขรหัสโค้ดพิเศษ" : "สร้างรหัสโค้ดพิเศษใหม่"}
+      subtitle={
+        editingCode
+          ? "ปรับปรุงข้อมูล โควต้า วันหมดอายุ หรือสถานะของโค้ด"
+          : "กำหนดสิทธิ์ วันหมดอายุ และโควต้าการใช้งาน"
+      }
+      maxWidth="max-w-md"
+      closeDisabled={saving}
+      bodyClassName="space-y-4 pt-4"
     >
-      <div
-        className="w-full max-w-md bg-white rounded-2xl p-5 sm:p-6 shadow-xl border border-[#D0DEF7] cursor-default animate-in fade-in zoom-in-95 duration-100 space-y-4 max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 pb-3 border-b border-[#D0DEF7]/60">
-          <div className="min-w-0">
-            <h3 className="text-sm font-bold text-[#25384C]">
-              {editingCode ? "แก้ไขรหัสโค้ดพิเศษ" : "สร้างรหัสโค้ดพิเศษใหม่"}
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {editingCode
-                ? "ปรับปรุงข้อมูล โควต้า วันหมดอายุ หรือสถานะของโค้ด"
-                : "กำหนดสิทธิ์ วันหมดอายุ และโควต้าการใช้งาน"}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer text-sm font-bold shrink-0"
-            title="ปิด"
-          >
-            ✕
-          </button>
-        </div>
 
         <form onSubmit={onSubmit} className="space-y-3.5 text-xs">
           {/* Code Name */}
@@ -366,7 +351,6 @@ export default function SpecialCodeModal({
             </div>
           </div>
         </form>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

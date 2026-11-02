@@ -250,3 +250,14 @@ code,
     height: 0px !important;
     background: transparent !important;
   }
+
+  html:has(body.modal-open),
+  body.modal-open {
+    overflow: hidden !important;
+  }
+
+  body.modal-open nav[aria-label="เมนูหลักด้านล่าง"] {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+  }

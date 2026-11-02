@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { UserProfile } from "@/types/user";
 import { siteConfig } from "@/config/site";
+import { TIER_CONFIGS, MemberTier } from "@/lib/tier";
 import BaseModal from "@/components/BaseModal";
 import {
   UserCog,
@@ -18,6 +19,14 @@ interface SettingsViewProps {
   onEditProfile: () => void;
   onRequestLogout: () => void;
 }
+
+const TIER_THRESHOLDS: { name: MemberTier; points: string; isMax?: boolean }[] = [
+  { name: "BRONZE", points: "0 แต้ม" },
+  { name: "SILVER", points: "10 แต้ม" },
+  { name: "GOLD", points: "25 แต้ม" },
+  { name: "PLATINUM", points: "50 แต้ม" },
+  { name: "DIAMOND", points: "100 แต้ม", isMax: true },
+];
 
 export default function SettingsView({
   user,
@@ -120,9 +129,10 @@ export default function SettingsView({
         title="กติกาและเงื่อนไขการสะสมแต้ม"
         subtitle="ระบบสมาชิกและสิทธิพิเศษ LELE' Ticket"
         maxWidth="max-w-md"
+        bodyClassName="!pb-4 !px-4 sm:!px-5 sm:!pb-5"
       >
-        <div className="p-4 sm:p-5 space-y-3">
-          <div className="p-3.5 rounded-xl bg-[#FAF8F2] border border-[#D0DEF7] space-y-1">
+        <div className="space-y-2.5 pt-2">
+          <div className="p-3 rounded-xl bg-[#FAF8F2] border border-[#D0DEF7] space-y-1">
             <p className="font-bold text-xs text-[#25384C]">
               1. การรับแต้มสะสม
             </p>
@@ -133,33 +143,51 @@ export default function SettingsView({
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#FAF8F2] border border-[#D0DEF7] space-y-1.5">
+          <div className="p-3 rounded-xl bg-[#FAF8F2] border border-[#D0DEF7] space-y-1.5">
             <p className="font-bold text-xs text-[#25384C]">
               2. ระดับสมาชิก (Member Tiers)
             </p>
             <p className="text-xs text-slate-600 leading-relaxed">
               แต้มสะสมจะช่วยเลื่อนระดับสมาชิกอัตโนมัติ:
             </p>
-            <div className="grid grid-cols-2 gap-1.5 pt-0.5 text-[11px] font-medium text-slate-600">
-              <span className="p-1.5 rounded-lg bg-white border border-[#D0DEF7]/60">
-                Bronze: 0 แต้ม
-              </span>
-              <span className="p-1.5 rounded-lg bg-white border border-[#D0DEF7]/60">
-                Silver: 10 แต้ม
-              </span>
-              <span className="p-1.5 rounded-lg bg-white border border-[#D0DEF7]/60">
-                Gold: 25 แต้ม
-              </span>
-              <span className="p-1.5 rounded-lg bg-white border border-[#D0DEF7]/60">
-                Platinum: 50 แต้ม
-              </span>
-              <span className="col-span-2 p-1.5 rounded-lg bg-white border border-[#D0DEF7]/60 text-center font-bold text-[#6B38FB]">
-                Diamond: 100+ แต้ม (สูงสุด)
-              </span>
+            <div className="divide-y divide-[#D0DEF7]/50 pt-0.5">
+              {TIER_THRESHOLDS.map((item) => {
+                const config = TIER_CONFIGS[item.name];
+                return (
+                  <div
+                    key={item.name}
+                    className="flex items-center justify-between py-1.5 text-xs"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="relative w-5 h-5 shrink-0 flex items-center justify-center">
+                        <Image
+                          src={config.badgeImage}
+                          alt={config.label}
+                          width={20}
+                          height={20}
+                          unoptimized
+                          className="w-full h-full object-contain pointer-events-none select-none"
+                        />
+                      </span>
+                      <span className="font-semibold text-xs text-[#25384C] font-latin">
+                        {config.label}
+                        {item.isMax && (
+                          <span className="text-[10px] text-slate-400 font-normal ml-1">
+                            (สูงสุด)
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <span className="text-xs text-slate-500 font-latin font-medium">
+                      {item.points}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#FAF8F2] border border-[#D0DEF7] space-y-1">
+          <div className="p-3 rounded-xl bg-[#FAF8F2] border border-[#D0DEF7] space-y-1">
             <p className="font-bold text-xs text-[#25384C]">
               3. การแลกและใช้สิทธิ์ลัดคิว
             </p>
@@ -169,15 +197,13 @@ export default function SettingsView({
             </p>
           </div>
 
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => setShowRulesModal(false)}
-              className="w-full min-h-10 px-4 py-2 bg-[#25384C] hover:bg-[#1B2938] text-white font-semibold text-xs rounded-xl shadow-2xs transition-all active:scale-[0.99] cursor-pointer"
-            >
-              เข้าใจแล้ว
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowRulesModal(false)}
+            className="w-full min-h-10 px-4 py-2.5 bg-[#25384C] hover:bg-[#1B2938] text-white font-semibold text-xs rounded-xl shadow-2xs transition-all active:scale-[0.99] cursor-pointer mt-1"
+          >
+            เข้าใจแล้ว
+          </button>
         </div>
       </BaseModal>
 

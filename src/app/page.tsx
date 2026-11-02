@@ -300,7 +300,6 @@ export default function HomePage() {
         onClose={() => setShowProfileModal(false)}
         token={token}
         initialXHandle={user.xHandle}
-        initialPhone={user.phone}
         currentAvatarUrl={user.avatarUrl}
         onSuccess={refreshUserData}
       />

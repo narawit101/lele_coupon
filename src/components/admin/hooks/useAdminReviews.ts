@@ -17,9 +17,9 @@ export function useAdminReviews({ adminToken, onRefreshAll }: UseAdminReviewsOpt
   const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
   const [reviewsSearch, setReviewsSearch] = useState("");
   const [reviewsStatus, setReviewsStatus] = useState("ALL");
-  const [reviewsSortBy, setReviewsSortBy] = useState<
-    "concertName" | "customer" | "createdAt" | "status"
-  >("createdAt");
+  const [reviewsSortBy, setReviewsSortBy] = useState <
+  "concertName" | "customer" | "xHandle" | "createdAt" | "status"
+    > ("createdAt");
   const [reviewsSortOrder, setReviewsSortOrder] = useState<"asc" | "desc">("desc");
   const [pendingReviewsCount, setPendingReviewsCount] = useState(0);
   const [reviewsLoading, setReviewsLoading] = useState(true);
@@ -74,80 +74,80 @@ export function useAdminReviews({ adminToken, onRefreshAll }: UseAdminReviewsOpt
     };
   }, [adminToken, reviewsPage, reviewsSearch, reviewsStatus, reviewsSortBy, reviewsSortOrder, fetchReviews]);
 
-  const handleSortReviews = (field: "concertName" | "customer" | "createdAt" | "status") => {
-    if (reviewsSortBy === field) {
-      setReviewsSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setReviewsSortBy(field);
-      setReviewsSortOrder(field === "createdAt" ? "desc" : "asc");
-    }
-  };
-
-  const openReviewDetail = (rev: AdminReview) => {
-    setInspectingReview(rev);
-  };
-
-  const closeReviewModal = () => {
-    setInspectingReview(null);
-  };
-
-  const executeReviewAction = async (
-    reviewId: string,
-    action: "APPROVE" | "REJECT" | "PENDING",
-    reason?: string,
-  ) => {
-    setReviewActionLoading(true);
-    try {
-      const res = await adminFetch("/api/admin/reviews", {
-        method: "POST",
-        token: adminToken,
-        json: { reviewId, action, rejectReason: reason },
-      });
-
-      if (res.ok) {
-        toast.success(
-          action === "APPROVE"
-            ? "อนุมัติรีวิวและเพิ่ม 1 แต้มเรียบร้อยแล้ว"
-            : action === "REJECT"
-              ? "ปฏิเสธรีวิวเรียบร้อย"
-              : "เปลี่ยนสถานะรีวิวเรียบร้อย",
-        );
-        await fetchReviews();
-        if (onRefreshAll) await onRefreshAll();
-        return true;
+    const handleSortReviews = (field: "concertName" | "customer" | "xHandle" | "createdAt" | "status") => {
+      if (reviewsSortBy === field) {
+        setReviewsSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
       } else {
-        const err = await res.json();
-        toast.error(err.error || "เกิดข้อผิดพลาด");
-        return false;
+        setReviewsSortBy(field);
+        setReviewsSortOrder(field === "createdAt" ? "desc" : "asc");
       }
-    } catch {
-      toast.error("เชื่อมต่อไม่สำเร็จ");
-      return false;
-    } finally {
-      setReviewActionLoading(false);
-    }
-  };
+    };
 
-  return {
-    reviews,
-    reviewsTotal,
-    reviewsPage,
-    reviewsTotalPages,
-    reviewsSearch,
-    reviewsStatus,
-    reviewsSortBy,
-    reviewsSortOrder,
-    pendingReviewsCount,
-    reviewsLoading,
-    inspectingReview,
-    reviewActionLoading,
-    setReviewsPage,
-    setReviewsSearch,
-    setReviewsStatus,
-    handleSortReviews,
-    openReviewDetail,
-    closeReviewModal,
-    executeReviewAction,
-    fetchReviews,
-  };
-}
+    const openReviewDetail = (rev: AdminReview) => {
+      setInspectingReview(rev);
+    };
+
+    const closeReviewModal = () => {
+      setInspectingReview(null);
+    };
+
+    const executeReviewAction = async (
+      reviewId: string,
+      action: "APPROVE" | "REJECT" | "PENDING",
+      reason?: string,
+    ) => {
+      setReviewActionLoading(true);
+      try {
+        const res = await adminFetch("/api/admin/reviews", {
+          method: "POST",
+          token: adminToken,
+          json: { reviewId, action, rejectReason: reason },
+        });
+
+        if (res.ok) {
+          toast.success(
+            action === "APPROVE"
+              ? "อนุมัติรีวิวและเพิ่ม 1 แต้มเรียบร้อยแล้ว"
+              : action === "REJECT"
+                ? "ปฏิเสธรีวิวเรียบร้อย"
+                : "เปลี่ยนสถานะรีวิวเรียบร้อย",
+          );
+          await fetchReviews();
+          if (onRefreshAll) await onRefreshAll();
+          return true;
+        } else {
+          const err = await res.json();
+          toast.error(err.error || "เกิดข้อผิดพลาด");
+          return false;
+        }
+      } catch {
+        toast.error("เชื่อมต่อไม่สำเร็จ");
+        return false;
+      } finally {
+        setReviewActionLoading(false);
+      }
+    };
+
+    return {
+      reviews,
+      reviewsTotal,
+      reviewsPage,
+      reviewsTotalPages,
+      reviewsSearch,
+      reviewsStatus,
+      reviewsSortBy,
+      reviewsSortOrder,
+      pendingReviewsCount,
+      reviewsLoading,
+      inspectingReview,
+      reviewActionLoading,
+      setReviewsPage,
+      setReviewsSearch,
+      setReviewsStatus,
+      handleSortReviews,
+      openReviewDetail,
+      closeReviewModal,
+      executeReviewAction,
+      fetchReviews,
+    };
+  }

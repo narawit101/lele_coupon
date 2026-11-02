@@ -7,6 +7,7 @@ import {
   checkTierUpgrade,
 } from "@/lib/tier";
 import { getAdminFromRequest } from "@/lib/admin-auth";
+import { deleteFromCloudinary } from "@/lib/cloudinary";
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "lele_admin_2026";
 
@@ -68,6 +69,7 @@ export async function GET(req: NextRequest) {
       displayName: a.name,
       avatarUrl: a.avatarUrl,
       xHandle: a.email,
+      email: a.email,
       phone: a.role,
       stamps: 0,
       createdAt: a.createdAt,
@@ -261,95 +263,218 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { adminId, name } = await req.json();
-  if (!adminId || !name?.trim()) {
-    return NextResponse.json(
-      { error: "กรุณาระบุชื่อที่ต้องการแก้ไข" },
-      { status: 400 }
-    );
-  }
+  const body = await req.json();
+  const { adminId, userId, name, email, displayName, avatarUrl, xHandle } = body;
 
-  const targetAdmin = await prisma.admin.findUnique({
-    where: { id: adminId },
-  });
-  if (!targetAdmin) {
-    return NextResponse.json(
-      { error: "ไม่พบบัญชีแอดมินที่ต้องการแก้ไข" },
-      { status: 404 }
-    );
-  }
+    // 1. Handle Customer Profile Edit (Both Admin and DEV can edit)
+    if (userId) {
+      const targetUser = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+      if (!targetUser) {
+        return NextResponse.json(
+          { error: "ไม่พบข้อมูลสมาชิกที่ต้องการแก้ไข" },
+          { status: 404 }
+        );
+      }
 
-  // ห้าม admin แก้ไขชื่อ dev
-  if (targetAdmin.role === "DEV" && currentAdmin?.role !== "DEV") {
-    return NextResponse.json(
-      { error: "ไม่อนุญาตให้แก้ไขชื่อบัญชี Developer" },
-      { status: 403 }
-    );
-  }
+      if (displayName !== undefined && !displayName.trim()) {
+        return NextResponse.json(
+          { error: "กรุณาระบุชื่อสมาชิก" },
+          { status: 400 }
+        );
+      }
 
-  const updated = await prisma.admin.update({
-    where: { id: adminId },
-    data: { name: name.trim() },
-  });
+      // Clean avatar if replaced
+      if (avatarUrl !== undefined && targetUser.avatarUrl && targetUser.avatarUrl !== avatarUrl) {
+        if (targetUser.avatarUrl.includes("res.cloudinary.com")) {
+          deleteFromCloudinary(targetUser.avatarUrl).catch((err) =>
+            console.error("Failed to delete old customer avatar:", err)
+          );
+        }
+      }
 
-  return NextResponse.json({ success: true, admin: updated });
-}
+      const cleanXHandle =
+        xHandle !== undefined
+          ? xHandle
+            ? xHandle.replace(/^@+/, "").trim()
+            : null
+          : undefined;
 
-export async function DELETE(req: NextRequest) {
-  const currentAdmin = await getAdminFromRequest(req);
-  if (!currentAdmin) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+      const updated = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          ...(displayName !== undefined && { displayName: displayName.trim() }),
+          ...(cleanXHandle !== undefined && { xHandle: cleanXHandle }),
+          ...(avatarUrl !== undefined && { avatarUrl: avatarUrl ? avatarUrl.trim() : null }),
+        },
+      });
 
-  const { searchParams } = req.nextUrl;
-  const adminId = searchParams.get("adminId");
+      return NextResponse.json({ success: true, user: updated });
+    }
 
-  if (!adminId) {
-    return NextResponse.json(
-      { error: "ไม่พบรหัสแอดมินที่ต้องการลบ" },
-      { status: 400 }
-    );
-  }
+      // 2. Handle Admin/Dev Account Edit
+      if (adminId) {
+        if (!name?.trim() && !email?.trim()) {
+          return NextResponse.json(
+            { error: "กรุณาระบุชื่อหรืออีเมลที่ต้องการแก้ไข" },
+            { status: 400 }
+          );
+        }
 
-  // 1. Cannot delete self
-  if (currentAdmin.id === adminId) {
-    return NextResponse.json(
-      { error: "ไม่สามารถลบบัญชีของตัวเองได้" },
-      { status: 400 }
-    );
-  }
+        const targetAdmin = await prisma.admin.findUnique({
+          where: { id: adminId },
+        });
+        if (!targetAdmin) {
+          return NextResponse.json(
+            { error: "ไม่พบบัญชีแอดมินที่ต้องการแก้ไข" },
+            { status: 404 }
+          );
+        }
 
-  // 2. Check target admin
-  const targetAdmin = await prisma.admin.findUnique({
-    where: { id: adminId },
-  });
-  if (!targetAdmin) {
-    return NextResponse.json(
-      { error: "ไม่พบบัญชีแอดมินในระบบ" },
-      { status: 404 }
-    );
-  }
+        // ห้าม admin ทั่วไปแก้ไขข้อมูล dev
+        if (targetAdmin.role === "DEV" && currentAdmin?.role !== "DEV") {
+          return NextResponse.json(
+            { error: "ไม่อนุญาตให้แก้ไขข้อมูลบัญชี Developer" },
+            { status: 403 }
+          );
+        }
 
-  // 3. Dev is highest role: DEV cannot be deleted
-  if (targetAdmin.role === "DEV") {
-    return NextResponse.json(
-      { error: "ไม่สามารถลบบัญชี Developer ได้" },
-      { status: 403 }
-    );
-  }
+        let normalizedEmail: string | undefined;
+        if (email !== undefined && email.trim().toLowerCase() !== targetAdmin.email.toLowerCase()) {
+          // ONLY DEV CAN EDIT ADMIN/DEV EMAIL
+          if (currentAdmin?.role !== "DEV") {
+            return NextResponse.json(
+              { error: "เฉพาะ Developer เท่านั้นที่สามารถแก้ไขอีเมลได้" },
+              { status: 403 }
+            );
+          }
 
-  // 4. Only DEV or OWNER can delete admins
-  if (currentAdmin.role !== "DEV" && currentAdmin.role !== "OWNER") {
-    return NextResponse.json(
-      { error: "เฉพาะ Developer หรือ Owner เท่านั้นที่สามารถลบแอดมินได้" },
-      { status: 403 }
-    );
-  }
+          const targetEmail = email.trim().toLowerCase();
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(targetEmail)) {
+            return NextResponse.json(
+              { error: "รูปแบบอีเมลไม่ถูกต้อง" },
+              { status: 400 }
+            );
+          }
 
-  await prisma.admin.delete({ where: { id: adminId } });
+          normalizedEmail = targetEmail;
 
-  return NextResponse.json({
-    success: true,
-    message: `ลบบัญชีแอดมิน ${targetAdmin.name} เรียบร้อยแล้ว`,
-  });
-}
+          const existingAdmin = await prisma.admin.findUnique({
+            where: { email: targetEmail },
+          });
+          if (existingAdmin && existingAdmin.id !== adminId) {
+            return NextResponse.json(
+              { error: "อีเมลนี้มีอยู่ในระบบแล้ว กรุณาใช้อีเมลอื่น" },
+              { status: 400 }
+            );
+          }
+        }
+
+        const updated = await prisma.admin.update({
+          where: { id: adminId },
+          data: {
+            ...(name?.trim() && { name: name.trim() }),
+            ...(normalizedEmail && { email: normalizedEmail }),
+          },
+        });
+
+        return NextResponse.json({ success: true, admin: updated });
+      }
+
+      return NextResponse.json(
+        { error: "กรุณาระบุ adminId หรือ userId" },
+        { status: 400 }
+      );
+    }
+
+    export async function DELETE(req: NextRequest) {
+      const currentAdmin = await getAdminFromRequest(req);
+      if (!currentAdmin) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      const { searchParams } = req.nextUrl;
+      const adminId = searchParams.get("adminId");
+      const userId = searchParams.get("userId");
+
+      // 1. Handle Customer Deletion
+      if (userId) {
+        // Only DEV or OWNER can delete customers
+        if (currentAdmin.role !== "DEV" && currentAdmin.role !== "OWNER") {
+          return NextResponse.json(
+            { error: "เฉพาะ Developer หรือ Owner เท่านั้นที่สามารถลบสมาชิกได้" },
+            { status: 403 }
+          );
+        }
+
+        const targetUser = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { id: true, displayName: true, stamps: true },
+        });
+
+        if (!targetUser) {
+          return NextResponse.json(
+            { error: "ไม่พบข้อมูลสมาชิกในระบบ" },
+            { status: 404 }
+          );
+        }
+
+        await prisma.user.delete({ where: { id: userId } });
+
+        return NextResponse.json({
+          success: true,
+          message: `ลบสมาชิก ${targetUser.displayName} เรียบร้อยแล้ว`,
+        });
+      }
+
+      // 2. Handle Admin Deletion
+      if (!adminId) {
+        return NextResponse.json(
+          { error: "ไม่พบรหัสผู้ใช้หรือแอดมินที่ต้องการลบ" },
+          { status: 400 }
+        );
+      }
+
+      // Cannot delete self
+      if (currentAdmin.id === adminId) {
+        return NextResponse.json(
+          { error: "ไม่สามารถลบบัญชีของตัวเองได้" },
+          { status: 400 }
+        );
+      }
+
+      // Check target admin
+      const targetAdmin = await prisma.admin.findUnique({
+        where: { id: adminId },
+      });
+      if (!targetAdmin) {
+        return NextResponse.json(
+          { error: "ไม่พบบัญชีแอดมินในระบบ" },
+          { status: 404 }
+        );
+      }
+
+      // Dev is highest role: DEV cannot be deleted
+      if (targetAdmin.role === "DEV") {
+        return NextResponse.json(
+          { error: "ไม่สามารถลบบัญชี Developer ได้" },
+          { status: 403 }
+        );
+      }
+
+      // Only DEV or OWNER can delete admins
+      if (currentAdmin.role !== "DEV" && currentAdmin.role !== "OWNER") {
+        return NextResponse.json(
+          { error: "เฉพาะ Developer หรือ Owner เท่านั้นที่สามารถลบแอดมินได้" },
+          { status: 403 }
+        );
+      }
+
+      await prisma.admin.delete({ where: { id: adminId } });
+
+      return NextResponse.json({
+        success: true,
+        message: `ลบบัญชีแอดมิน ${targetAdmin.name} เรียบร้อยแล้ว`,
+      });
+    }

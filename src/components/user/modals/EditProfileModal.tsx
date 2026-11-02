@@ -11,7 +11,6 @@ export interface EditProfileModalProps {
   onClose: () => void;
   token?: string | null;
   initialXHandle?: string | null;
-  initialPhone?: string | null;
   currentAvatarUrl?: string | null;
   onSuccess: () => Promise<void> | void;
 }
@@ -21,12 +20,10 @@ export default function EditProfileModal({
   onClose,
   token,
   initialXHandle = "",
-  initialPhone = "",
   currentAvatarUrl,
   onSuccess,
 }: EditProfileModalProps) {
   const [editXHandle, setEditXHandle] = useState("");
-  const [editPhone, setEditPhone] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -35,12 +32,11 @@ export default function EditProfileModal({
     if (isOpen) {
       queueMicrotask(() => {
         setEditXHandle(initialXHandle || "");
-        setEditPhone(initialPhone || "");
         setAvatarFile(null);
         setAvatarPreview(currentAvatarUrl || null);
       });
     }
-  }, [isOpen, initialXHandle, initialPhone, currentAvatarUrl]);
+  }, [isOpen, initialXHandle, currentAvatarUrl]);
 
   if (!isOpen) return null;
 
@@ -100,7 +96,6 @@ export default function EditProfileModal({
         },
         body: JSON.stringify({
           xHandle: editXHandle,
-          phone: editPhone,
           ...(finalAvatarUrl !== undefined && { avatarUrl: finalAvatarUrl }),
         }),
       });
@@ -126,6 +121,7 @@ export default function EditProfileModal({
       title="แก้ไขข้อมูลส่วนตัว"
       maxWidth="max-w-sm"
       closeDisabled={savingProfile}
+      bodyClassName="!pb-4 !px-4 sm:!px-5 sm:!pb-5"
     >
       <form onSubmit={handleSaveProfile} className="space-y-3">
         {/* Profile Avatar Upload */}
@@ -185,18 +181,6 @@ export default function EditProfileModal({
               className="w-full min-h-13 pl-8 pr-3 py-2 rounded-xl border border-[#D0DEF7] text-sm focus:border-[#25384C] outline-none transition-colors"
             />
           </div>
-        </div>
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1">
-            เบอร์โทรศัพท์
-          </label>
-          <input
-            type="tel"
-            placeholder="08X-XXX-XXXX"
-            value={editPhone}
-            onChange={(e) => setEditPhone(e.target.value)}
-            className="w-full min-h-13 px-3 py-2 rounded-xl border border-[#D0DEF7] text-sm focus:border-[#25384C] outline-none transition-colors"
-          />
         </div>
 
         <div className="flex gap-2 pt-2">

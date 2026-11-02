@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import BaseModal from "@/components/BaseModal";
 import { formatThaiDateTime } from "@/lib/date";
 import { AdminPass } from "../types";
 
@@ -23,129 +24,138 @@ export default function InspectPassModal({
 }: InspectPassModalProps) {
   if (!pass) return null;
 
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-[#25384C]/60 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
-      onClick={() => {
-        if (!isLoading) onClose();
-      }}
-    >
-      <div
-        className="w-full max-w-md bg-white rounded-xl p-5 sm:p-6 shadow-xl border border-[#D0DEF7] cursor-default animate-in fade-in zoom-in-95 duration-100 space-y-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 pb-3 border-b border-[#D0DEF7]/60">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold font-mono text-[#25384C]">
-                {pass.code}
-              </h3>
-              <span
-                className={`text-xs font-semibold ${
-                  pass.status === "ACTIVE" ? "text-[#657406]" : "text-slate-400"
-                }`}
-              >
-                {pass.status === "ACTIVE" ? "รอยืนยันสิทธิ์" : "ใช้งานแล้ว"}
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {pass.rewardTitle || "สิทธิ์ลัดคิว"}
-              {pass.promotion?.points !== undefined &&
-                pass.promotion?.points !== null && (
-                  <span className="text-slate-400 font-latin ml-1">
-                    (ใช้ {pass.promotion.points} แต้ม)
-                  </span>
-                )}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isLoading}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer text-sm font-bold shrink-0 disabled:opacity-50"
-            title="ปิด"
+  const modalHeader = (
+    <div className="flex items-start justify-between gap-3 p-5 sm:p-6 pb-3 sm:pb-4 border-b border-[#D0DEF7]/60 shrink-0">
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-bold font-mono text-[#25384C]">
+            {pass.code}
+          </h3>
+          <span
+            className={`text-xs font-semibold ${
+              pass.status === "ACTIVE" ? "text-[#657406]" : "text-slate-400"
+            }`}
           >
-            ✕
-          </button>
+            {pass.status === "ACTIVE" ? "รอยืนยันสิทธิ์" : "ใช้งานแล้ว"}
+          </span>
         </div>
-
-        {/* Info Items */}
-        <div className="space-y-2.5 text-xs">
-          <div className="flex justify-between items-baseline gap-2">
-            <span className="text-slate-500">ลูกค้า</span>
-            <span className="font-semibold text-slate-800 text-right">
-              {pass.user.displayName}
-              {pass.user.xHandle && (
-                <span className="text-slate-400 font-latin font-normal ml-1.5">
-                  @{pass.user.xHandle}
-                </span>
-              )}
-            </span>
-          </div>
-          <div className="flex justify-between items-baseline gap-2">
-            <span className="text-slate-500">วันที่แลกสิทธิ์</span>
-            <span className="text-slate-700 font-latin text-right">
-              {formatThaiDateTime(pass.createdAt)}
-            </span>
-          </div>
-          {pass.status === "USED" && (
-            <div className="flex justify-between items-baseline gap-2 pt-2 border-t border-[#D0DEF7]/40">
-              <span className="text-slate-500">งานที่ใช้สิทธิ์</span>
-              <span className="font-semibold text-[#25384C] text-right">
-                {pass.usedForConcert || "-"}
+        <p className="text-xs text-slate-500 mt-0.5">
+          {pass.rewardTitle || "สิทธิ์ลัดคิว"}
+          {pass.promotion?.points !== undefined &&
+            pass.promotion?.points !== null && (
+              <span className="text-slate-400 font-latin ml-1">
+                (ใช้ {pass.promotion.points} แต้ม)
               </span>
-            </div>
-          )}
-        </div>
+            )}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onClose}
+        disabled={isLoading}
+        className="text-[#5284B7] hover:text-[#25384C] p-1 rounded-full hover:bg-[#FAF8F2] transition cursor-pointer disabled:opacity-50 shrink-0"
+        title="ปิด"
+      >
+        ✕
+      </button>
+    </div>
+  );
 
-        {/* Actions Section */}
-        {pass.status === "ACTIVE" ? (
-          <div className="pt-2 border-t border-[#D0DEF7]/40 space-y-3">
-            <div>
-              <label className="block text-xs font-semibold text-[#25384C] mb-1">
-                งานที่ใช้สิทธิ์
-              </label>
-              <input
-                type="text"
-                value={passConcertInput}
-                onChange={(e) => onPassConcertInputChange(e.target.value)}
-                placeholder="เช่น คอนเสิร์ต A"
-                className="w-full px-3 py-2 text-xs border border-[#D0DEF7] rounded-lg bg-white outline-none focus:border-[#25384C] transition"
-              />
-            </div>
-            <div className="flex items-center justify-end gap-2 pt-1">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={isLoading}
-                className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-white hover:bg-[#FAF8F2] text-slate-700 border border-[#D0DEF7] transition cursor-pointer disabled:opacity-50"
-              >
-                ยกเลิก
-              </button>
-              <button
-                type="button"
-                disabled={isLoading}
-                onClick={() => onPassAction("USE")}
-                className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#25384C] text-white hover:bg-[#1B2938] disabled:opacity-50 transition cursor-pointer"
-              >
-                {isLoading ? "กำลังบันทึก..." : "ยืนยันการใช้สิทธิ์"}
-              </button>
-            </div>
+  return (
+    <BaseModal
+      isOpen={!!pass}
+      onClose={onClose}
+      header={modalHeader}
+      maxWidth="max-w-md"
+      closeDisabled={isLoading}
+      bodyClassName="space-y-4 pt-4"
+    >
+      {/* Pass Details */}
+      <div className="p-3 rounded-lg bg-[#FAF8F2] border border-[#D0DEF7] space-y-1.5 text-xs">
+        <div className="flex justify-between">
+          <span className="text-slate-500">เจ้าของสิทธิ์:</span>
+          <span className="font-semibold text-slate-700">
+            {pass.user?.displayName || "ไม่ระบุ"}
+          </span>
+        </div>
+        {pass.user?.xHandle && (
+          <div className="flex justify-between">
+            <span className="text-slate-500">บัญชี X:</span>
+            <span className="font-medium text-slate-600 font-latin">
+              @{pass.user.xHandle}
+            </span>
           </div>
-        ) : (
-          <div className="flex items-center justify-end pt-3 border-t border-[#D0DEF7]/40">
-            <button
-              type="button"
-              disabled={isLoading}
-              onClick={() => onPassAction("REVERT")}
-              className="px-3.5 py-2 text-xs font-semibold rounded-lg border border-rose-300 text-rose-700 bg-rose-50/60 hover:bg-rose-100 transition cursor-pointer disabled:opacity-50"
-            >
-              {isLoading ? "กำลังดำเนินการ..." : "ยกเลิกสิทธิ์"}
-            </button>
+        )}
+        <div className="flex justify-between">
+          <span className="text-slate-500">วันที่แลก:</span>
+          <span className="font-medium text-slate-600 font-latin">
+            {formatThaiDateTime(pass.createdAt)}
+          </span>
+        </div>
+        {pass.status === "USED" && pass.usedAt && (
+          <div className="flex justify-between border-t border-[#D0DEF7]/60 pt-1.5 mt-1.5">
+            <span className="text-slate-500">ใช้งานเมื่อ:</span>
+            <span className="font-medium text-slate-600 font-latin">
+              {formatThaiDateTime(pass.usedAt)}
+            </span>
+          </div>
+        )}
+        {pass.usedForConcert && (
+          <div className="flex justify-between">
+            <span className="text-slate-500">ชื่องานคอนเสิร์ต:</span>
+            <span className="font-semibold text-[#25384C]">
+              {pass.usedForConcert}
+            </span>
           </div>
         )}
       </div>
-    </div>
+
+      {/* Action Form */}
+      {pass.status === "ACTIVE" ? (
+        <div className="space-y-3 pt-1">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              ชื่องานคอนเสิร์ตที่นำไปใช้
+            </label>
+            <input
+              type="text"
+              placeholder="เช่น IU H.E.R. World Tour in Bangkok"
+              value={passConcertInput}
+              onChange={(e) => onPassConcertInputChange(e.target.value)}
+              className="w-full min-h-13 px-3 py-2 text-xs rounded-lg border border-[#D0DEF7] outline-none focus:border-[#25384C] transition"
+            />
+          </div>
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={onClose}
+              className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-white border border-[#D0DEF7] text-slate-700 hover:bg-[#FAF8F2] transition cursor-pointer disabled:opacity-50"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={() => onPassAction("USE")}
+              className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#25384C] text-white hover:bg-[#1B2938] disabled:opacity-50 transition cursor-pointer"
+            >
+              {isLoading ? "กำลังบันทึก..." : "ยืนยันการใช้สิทธิ์"}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-end pt-3 border-t border-[#D0DEF7]/40">
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={() => onPassAction("REVERT")}
+            className="px-3.5 py-2 text-xs font-semibold rounded-lg border border-rose-300 text-rose-700 bg-rose-50/60 hover:bg-rose-100 transition cursor-pointer disabled:opacity-50"
+          >
+            {isLoading ? "กำลังดำเนินการ..." : "ยกเลิกสิทธิ์"}
+          </button>
+        </div>
+      )}
+    </BaseModal>
   );
 }

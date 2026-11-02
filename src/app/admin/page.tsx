@@ -22,6 +22,7 @@ import {
   PassesTab,
   MembersTab,
   ProfileSettingsModal,
+  NewAdminModal,
   ConfirmModal,
   useAdminAuth,
   useAdminReviews,
@@ -438,13 +439,8 @@ export default function AdminDashboard() {
             showEditAdminModal={membersHook.showEditAdminModal}
             editingAdmin={membersHook.editingAdmin}
             editAdminName={membersHook.editAdminName}
+            editAdminEmail={membersHook.editAdminEmail}
             savingEditAdmin={membersHook.savingEditAdmin}
-            showNewAdminModal={membersHook.showNewAdminModal}
-            newAdminEmail={membersHook.newAdminEmail}
-            newAdminName={membersHook.newAdminName}
-            newAdminPasswordMode={membersHook.newAdminPasswordMode}
-            newAdminPassword={membersHook.newAdminPassword}
-            savingNewAdmin={membersHook.savingNewAdmin}
             onPageChange={membersHook.setMembersPage}
             onSearchChange={membersHook.setMembersSearch}
             onSort={membersHook.handleSortMembers}
@@ -462,15 +458,12 @@ export default function AdminDashboard() {
             onOpenEditAdmin={membersHook.openEditAdmin}
             onCloseEditAdmin={membersHook.closeEditAdminModal}
             onEditAdminNameChange={membersHook.setEditAdminName}
+            onEditAdminEmailChange={membersHook.setEditAdminEmail}
             onSaveAdminName={membersHook.handleSaveAdminName}
+            onUpdateProfile={membersHook.handleSaveUserProfile}
             onDeleteAdmin={membersHook.executeDeleteAdmin}
+            onDeleteUser={membersHook.executeDeleteUser}
             onOpenNewAdmin={membersHook.openNewAdmin}
-            onCloseNewAdmin={membersHook.closeNewAdminModal}
-            onNewAdminEmailChange={membersHook.setNewAdminEmail}
-            onNewAdminNameChange={membersHook.setNewAdminName}
-            onNewAdminPasswordModeChange={membersHook.setNewAdminPasswordMode}
-            onNewAdminPasswordChange={membersHook.setNewAdminPassword}
-            onCreateAdmin={membersHook.handleCreateAdmin}
             openConfirmModal={openConfirmModal}
           />
         )}
@@ -500,6 +493,22 @@ export default function AdminDashboard() {
           await auth.handleSaveProfileSettings(e);
           membersHook.fetchMembers();
         }}
+      />
+
+      {/* Global New Admin Modal */}
+      <NewAdminModal
+        isOpen={membersHook.showNewAdminModal}
+        onClose={membersHook.closeNewAdminModal}
+        email={membersHook.newAdminEmail}
+        setEmail={membersHook.setNewAdminEmail}
+        name={membersHook.newAdminName}
+        setName={membersHook.setNewAdminName}
+        passwordMode={membersHook.newAdminPasswordMode}
+        setPasswordMode={membersHook.setNewAdminPasswordMode}
+        password={membersHook.newAdminPassword}
+        setPassword={membersHook.setNewAdminPassword}
+        saving={membersHook.savingNewAdmin}
+        onSubmit={membersHook.handleCreateAdmin}
       />
 
       {/* Unified Confirm Modal */}

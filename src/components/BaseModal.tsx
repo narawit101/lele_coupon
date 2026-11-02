@@ -1,7 +1,11 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { useModalEscape } from "@/hooks/useModalEscape";
+
+const emptySubscribe = () => () => {};
 
 export interface BaseModalProps {
   isOpen: boolean;
@@ -14,6 +18,8 @@ export interface BaseModalProps {
   showCloseButton?: boolean;
   className?: string;
   bodyClassName?: string;
+  header?: React.ReactNode;
+  footer?: React.ReactNode;
 }
 
 export default function BaseModal({
@@ -27,23 +33,22 @@ export default function BaseModal({
   showCloseButton = true,
   className = "",
   bodyClassName = "",
+  header,
+  footer,
 }: BaseModalProps) {
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !closeDisabled) {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, closeDisabled, onClose]);
+  const isMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
-  if (!isOpen) return null;
+  useModalEscape(isOpen, onClose, closeDisabled);
 
-  return (
+  if (!isOpen || !isMounted) return null;
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-[#25384C]/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 cursor-pointer"
+      className="fixed inset-0 z-50 bg-[#25384C]/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 cursor-pointer min-h-dvh w-screen"
       onClick={() => {
         if (!closeDisabled) onClose();
       }}
@@ -52,7 +57,9 @@ export default function BaseModal({
         className={`bg-white rounded-[20px] sm:rounded-3xl border border-[#D0DEF7] w-full ${maxWidth} shadow-xl relative cursor-default max-h-[90vh] flex flex-col overflow-hidden ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
-        {(title || showCloseButton) && (
+        {header ? (
+          header
+        ) : title || showCloseButton ? (
           <div className="flex items-start justify-between gap-4 p-5 sm:p-6 pb-3 sm:pb-4 border-b border-[#D0DEF7]/60 shrink-0">
             <div className="min-w-0">
               {title && (
@@ -78,13 +85,21 @@ export default function BaseModal({
               </button>
             )}
           </div>
-        )}
+        ) : null}
+
         <div
-          className={`pb-5 px-5 pr-6 sm:pb-6 sm:pr-6 overflow-y-auto no-scrollbar flex-1 ${bodyClassName}`}
+          className={`pb-5 px-5 sm:pb-6 sm:px-6 overflow-y-auto no-scrollbar flex-1 ${bodyClassName}`}
         >
           {children}
         </div>
+
+        {footer && (
+          <div className="shrink-0 border-t border-[#D0DEF7]/60 p-4 sm:p-5 bg-white">
+            {footer}
+          </div>
+        )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

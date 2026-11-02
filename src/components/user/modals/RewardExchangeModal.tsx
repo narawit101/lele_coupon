@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useRef } from "react";
 import { X, Copy, Check } from "lucide-react";
+import BaseModal from "@/components/BaseModal";
 import { Promotion, QueuePass } from "@/types/user";
 import Pagination from "@/components/Pagination";
 
@@ -125,8 +126,6 @@ export default function RewardExchangeModal({
     }
   };
 
-  if (!isOpen) return null;
-
   const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
@@ -156,37 +155,53 @@ export default function RewardExchangeModal({
     }
   };
 
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-[#25384C]/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 cursor-pointer"
-      onClick={handleClose}
-    >
-      <div
-        className="w-full max-w-md sm:max-w-lg bg-white rounded-[20px] shadow-2xl border border-[#D0DEF7] overflow-hidden flex flex-col max-h-[90vh] cursor-default"
-        onClick={(e) => e.stopPropagation()}
+  const modalHeader = (
+    <div className="p-5 border-b border-[#D0DEF7] flex items-start justify-between gap-3 bg-[#FAF8F2] shrink-0">
+      <div>
+        <h3 className="text-base font-bold text-[#25384C]">
+          แลกของรางวัล & โปรโมชั่น
+        </h3>
+        <p className="text-xs text-slate-500 mt-0.5">
+          แต้มสะสม:{" "}
+          <b className="text-[#25384C] font-latin font-bold text-sm">
+            {userStamps}
+          </b>{" "}
+          แต้ม
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={handleClose}
+        className="p-1.5 rounded-[10px] text-slate-400 hover:text-[#25384C] hover:bg-[#D0DEF7]/40 transition cursor-pointer"
       >
-        {/* Header */}
-        <div className="p-5 border-b border-[#D0DEF7] flex items-start justify-between gap-3 bg-[#FAF8F2] shrink-0">
-          <div>
-            <h3 className="text-base font-bold text-[#25384C]">
-              แลกของรางวัล & โปรโมชั่น
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              แต้มสะสม:{" "}
-              <b className="text-[#25384C] font-latin font-bold text-sm">
-                {userStamps}
-              </b>{" "}
-              แต้ม
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleClose}
-            className="p-1.5 rounded-[10px] text-slate-400 hover:text-[#25384C] hover:bg-[#D0DEF7]/40 transition cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  );
+
+  const modalFooter =
+    !confirmPromo && justRedeemedPasses.length === 0 && totalPages > 1 ? (
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalItems={promotions.length}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+        compact
+        className="rounded-xl border border-[#D0DEF7] overflow-hidden shadow-2xs"
+      />
+    ) : null;
+
+  return (
+    <BaseModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      header={modalHeader}
+      footer={modalFooter}
+      maxWidth="max-w-md sm:max-w-lg"
+      bodyClassName="!p-0"
+      closeDisabled={!!redeemingId}
+    >
 
         {/* Content */}
         <div
@@ -525,22 +540,6 @@ export default function RewardExchangeModal({
             </div>
           )}
         </div>
-
-        {/* Pinned Bottom Pagination */}
-        {!confirmPromo && justRedeemedPasses.length === 0 && totalPages > 1 && (
-          <div className="p-3.5 sm:p-4 border-t border-[#D0DEF7] bg-white shrink-0">
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              totalItems={promotions.length}
-              pageSize={pageSize}
-              onPageChange={handlePageChange}
-              compact
-              className="rounded-xl border border-[#D0DEF7] overflow-hidden shadow-2xs"
-            />
-          </div>
-        )}
-      </div>
-    </div>
+    </BaseModal>
   );
 }

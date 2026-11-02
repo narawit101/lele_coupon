@@ -47,6 +47,8 @@ export async function GET(req: NextRequest) {
     orderBy = [{ concertName: sortOrder }, { createdAt: "desc" }];
   } else if (sortBy === "customer") {
     orderBy = [{ user: { displayName: sortOrder } }, { createdAt: "desc" }];
+  } else if (sortBy === "xHandle") {
+    orderBy = [{ xHandle: sortOrder }, { createdAt: "desc" }];
   } else if (sortBy === "status") {
     orderBy = [{ status: sortOrder }, { createdAt: "desc" }];
   } else if (sortBy === "createdAt") {
@@ -68,6 +70,8 @@ export async function GET(req: NextRequest) {
             xHandle: true,
             phone: true,
             stamps: true,
+            tier: true,
+            lifetimeStamps: true,
           },
         },
       },

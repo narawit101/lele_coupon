@@ -39,7 +39,10 @@ export default function ProfileDropdown({
     if (!isOpen) return;
 
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -59,7 +62,7 @@ export default function ProfileDropdown({
     };
   }, [isOpen]);
 
-  const initials = name?.trim() ? name.slice(0, 2).toUpperCase() : "U";
+  const initials = name?.trim() ? name.trim().slice(0, 1).toUpperCase() : "U";
 
   return (
     <div className="relative" ref={containerRef}>

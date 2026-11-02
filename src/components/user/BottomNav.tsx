@@ -43,7 +43,7 @@ export default function BottomNav({
   return (
     <nav
       aria-label="เมนูหลักด้านล่าง"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-[#FAF8F2]/95 backdrop-blur-md border-t border-[#D0DEF7]"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-[#FAF8F2]/95 backdrop-blur-md border-t border-[#D0DEF7] transition-opacity duration-150"
     >
       <div className="max-w-lg mx-auto px-2 sm:px-6 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around">
         {USER_NAV_TABS.map((tab) => {

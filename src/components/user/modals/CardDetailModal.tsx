@@ -1,12 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { Copy, Check, X } from "lucide-react";
+import { useModalEscape } from "@/hooks/useModalEscape";
 import { getMemberTier } from "@/lib/tier";
 import { UserProfile } from "@/types/user";
 import { toast } from "react-toastify";
 import UserCardContent from "../UserCardContent";
+
+const emptySubscribe = () => () => {};
 
 interface CardDetailModalProps {
   isOpen: boolean;
@@ -21,6 +25,11 @@ export default function CardDetailModal({
   user,
   sourceRect,
 }: CardDetailModalProps) {
+  const isMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
   const [isFlipped, setIsFlipped] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -95,9 +104,11 @@ export default function CardDetailModal({
     }, 380);
   };
 
+  useModalEscape(isOpen, handleClose, isClosing);
+
   const memberTier = React.useMemo(() => getMemberTier(user), [user]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !isMounted) return null;
 
   const handleCopyId = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -122,9 +133,9 @@ export default function CardDetailModal({
     willChange: "transform",
   };
 
-  return (
+  return createPortal(
     <div
-      className={`fixed inset-0 z-50 bg-[#25384C]/80 backdrop-blur-md flex items-center justify-center p-4 select-none transition-opacity duration-350 ease-out ${
+      className={`fixed inset-0 z-50 bg-[#25384C]/80 backdrop-blur-md flex items-center justify-center p-4 select-none transition-opacity duration-350 ease-out min-h-dvh w-screen ${
         isExpanded && !isClosing
           ? "opacity-100"
           : "opacity-0 pointer-events-none"
@@ -272,6 +283,7 @@ export default function CardDetailModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

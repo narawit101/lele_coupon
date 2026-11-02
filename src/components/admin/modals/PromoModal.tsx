@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import BaseModal from "@/components/BaseModal";
 import { AdminPromotion } from "../types";
 
 export interface PromoModalProps {
@@ -51,33 +52,15 @@ export default function PromoModal({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-[#25384C]/60 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
-      onClick={onClose}
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={editingPromo ? "แก้ไขโปรโมชั่น" : "สร้างโปรโมชั่นใหม่"}
+      subtitle="กำหนดชื่อและจำนวนแต้มที่ลูกค้าต้องใช้ในการแลก"
+      maxWidth="max-w-md"
+      closeDisabled={savingPromo}
+      bodyClassName="space-y-4 pt-4"
     >
-      <div
-        className="w-full max-w-md bg-white rounded-xl p-5 sm:p-6 shadow-xl border border-[#D0DEF7] cursor-default animate-in fade-in zoom-in-95 duration-100 space-y-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 pb-3 border-b border-[#D0DEF7]/60">
-          <div className="min-w-0">
-            <h3 className="text-sm font-bold text-[#25384C]">
-              {editingPromo ? "แก้ไขโปรโมชั่น" : "สร้างโปรโมชั่นใหม่"}
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              กำหนดชื่อและจำนวนแต้มที่ลูกค้าต้องใช้ในการแลก
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer text-sm font-bold shrink-0"
-            title="ปิด"
-          >
-            ✕
-          </button>
-        </div>
 
         <form onSubmit={onSave} className="space-y-3.5">
           <div>
@@ -253,7 +236,6 @@ export default function PromoModal({
             </div>
           </div>
         </form>
-      </div>
-    </div>
+    </BaseModal>
   );
 }
