@@ -33,7 +33,7 @@ export default function InspectPassModal({
           </h3>
           <span
             className={`text-xs font-semibold ${
-              pass.status === "ACTIVE" ? "text-[#657406]" : "text-slate-400"
+              pass.status === "ACTIVE" ? "text-[#D97706]" : "text-slate-400"
             }`}
           >
             {pass.status === "ACTIVE" ? "รอยืนยันสิทธิ์" : "ใช้งานแล้ว"}

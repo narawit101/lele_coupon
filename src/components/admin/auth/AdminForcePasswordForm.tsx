@@ -50,7 +50,7 @@ export default function AdminForcePasswordForm({
         <h2 className="text-lg font-bold text-center text-[#25384C]">
           จำเป็นต้องตั้งรหัสผ่านใหม่
         </h2>
-        <p className="text-xs text-center text-[#657406] mt-1 leading-relaxed">
+        <p className="text-xs text-center text-slate-500 mt-1 leading-relaxed">
           ยินดีต้อนรับคุณ <b className="text-[#25384C]">{adminProfile.name}</b> ({adminProfile.email})
           <br />
           กรุณาตั้งรหัสผ่านใหม่ก่อนเริ่มใช้งาน

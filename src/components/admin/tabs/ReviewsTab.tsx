@@ -189,6 +189,28 @@ export default function ReviewsTab({
       },
     },
     {
+      key: "postUrl",
+      header: "ลิงก์โพสต์",
+      className: "whitespace-nowrap",
+      render: (rev) => {
+        return rev.postUrl ? (
+          <a
+            href={rev.postUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-xs text-[#315F91] hover:underline inline-flex items-center gap-1 font-medium"
+            title={rev.postUrl}
+          >
+            <span>ดูโพสต์</span>
+            <ExternalLink className="w-3 h-3 shrink-0" />
+          </a>
+        ) : (
+          <span className="text-slate-400 text-xs">-</span>
+        );
+      },
+    },
+    {
       key: "createdAt",
       header: "วันที่ส่ง",
       sortable: true,
@@ -202,7 +224,7 @@ export default function ReviewsTab({
       render: (rev) => (
         <div className="flex flex-col min-w-0">
           {rev.status === "PENDING" && (
-            <span className="text-xs font-semibold text-[#657406]">
+            <span className="text-xs font-semibold text-[#D97706]">
               รอตรวจสอบ
             </span>
           )}

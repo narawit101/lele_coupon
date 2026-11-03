@@ -14,37 +14,39 @@ Core palette and complementary functional tokens.
 
 ### Brand Palette
 
-| Token | Hex | Role | Usage |
-|---|---|---|---|
-| **Cream** | `#F7EBC9` | Brand Surface | Member card background, warm accents |
-| **Cornflower** | `#5284B7` | Brand Primary | Illustration, graphical highlights |
-| **Booking Blue** | `#25384C` | Action & Text | Primary buttons, headers, main labels |
-| **Ink** | `#25384C` | Typography | Primary body text, high-emphasis content |
-| **Slate** | `#657406` | Secondary Text | Subtitles, timestamps, auxiliary labels |
-| **Cloud** | `#FAF8F2` | Canvas | Application background, secondary surfaces |
-| **Paper** | `#FFFFFF` | Surface | Cards, modals, elevated containers |
-| **Mist** | `#D0DEF7` | Border | Card dividers, input borders, structural strokes |
+| Token            | Hex       | Role              | Usage                                            |
+| ---------------- | --------- | ----------------- | ------------------------------------------------ |
+| **Cream**        | `#F7EBC9` | Brand Surface     | Member card background, warm accents             |
+| **Cornflower**   | `#5284B7` | Brand Primary     | Illustration, graphical highlights               |
+| **Booking Blue** | `#25384C` | Action & Text     | Primary buttons, headers, main labels            |
+| **Ink**          | `#25384C` | Typography        | Primary body text, high-emphasis content         |
+| **Cornflower**   | `#5284B7` | Secondary Text    | Subtitles, timestamps, auxiliary labels          |
+| **Amber**        | `#D97706` | Warning / Pending | Pending review, waiting confirmation             |
+| **Cloud**        | `#FAF8F2` | Canvas            | Application background, secondary surfaces       |
+| **Paper**        | `#FFFFFF` | Surface           | Cards, modals, elevated containers               |
+| **Mist**         | `#D0DEF7` | Border            | Card dividers, input borders, structural strokes |
 
 ### Semantic Colors (Foreground · Soft Surface)
 
-| Role | Foreground | Surface | Usage |
-|---|---|---|---|
-| **Success** | `#2D7058` | `#EAF4EE` | Approved reviews, positive point increments, active passes, add point action |
-| **Warning** | `#956018` | `#FCF2D9` | Pending reviews, cautionary notes |
-| **Error** | `#B01444` | `#FBEDED` | Rejected submissions, point deductions, destructive actions |
-| **Info** | `#315F91` | `#EDF3FA` | External links, informational tags |
+| Role        | Foreground | Surface   | Usage                                                                        |
+| ----------- | ---------- | --------- | ---------------------------------------------------------------------------- |
+| **Success** | `#2D7058`  | `#EAF4EE` | Approved reviews, positive point increments, active passes, add point action |
+| **Warning** | `#956018`  | `#FCF2D9` | Pending reviews, cautionary notes                                            |
+| **Error**   | `#B01444`  | `#FBEDED` | Rejected submissions, point deductions, destructive actions                  |
+| **Info**    | `#315F91`  | `#EDF3FA` | External links, informational tags                                           |
 
 ### Member Tier Badge Palette (Foreground · Surface · Border)
 
-| Tier | Min Points | Foreground | Surface | Border |
-|---|---|---|---|---|
-| **Bronze** | 0 | `#A05A2C` | `#FDF3EC` | `#F4D3C2` |
-| **Silver** | 5 | `#5E6977` | `#F1F4F8` | `#D8DEE6` |
-| **Gold** | 15 | `#B47D00` | `#FEF9E7` | `#FBE79E` |
-| **Platinum** | 30 | `#1A8282` | `#EBF8F8` | `#BCEAEA` |
-| **Diamond** | 50 | `#6B38FB` | `#F3EFFF` | `#D6C7FE` |
+| Tier         | Min Points | Foreground | Surface   | Border    |
+| ------------ | ---------- | ---------- | --------- | --------- |
+| **Bronze**   | 0          | `#A05A2C`  | `#FDF3EC` | `#F4D3C2` |
+| **Silver**   | 5          | `#5E6977`  | `#F1F4F8` | `#D8DEE6` |
+| **Gold**     | 15         | `#B47D00`  | `#FEF9E7` | `#FBE79E` |
+| **Platinum** | 30         | `#1A8282`  | `#EBF8F8` | `#BCEAEA` |
+| **Diamond**  | 50         | `#6B38FB`  | `#F3EFFF` | `#D6C7FE` |
 
 ### Color Principles
+
 - Use **Cream** and **Cornflower** for distinct brand personality moments (e.g., member cards).
 - Anchor interactive controls with **Booking Blue** for high contrast and accessibility.
 - Apply semantic colors strictly for status and audit states without mixing background varieties.
@@ -57,36 +59,39 @@ Clear hierarchy, legible weights, and bilingual pairing.
 
 ### Type Scale
 
-| Role | Size / Line Height / Weight | Usage |
-|---|---|---|
-| **Display** | 40 / 56 px · 600 | Marketing banners, hero titles |
-| **Heading** | 28 / 40 px · 600 | Section headers |
-| **Title** | 20 / 30 px · 600 | Modal titles, card headings |
-| **Body** | 16 / 28 px · 400 | Primary body copy |
-| **Label** | 14 / 22 px · 500 | Form field labels, action buttons |
-| **Caption** | 12 / 20 px · 400 | Helper text, secondary timestamps, tags |
+| Role        | Size / Line Height / Weight | Usage                                   |
+| ----------- | --------------------------- | --------------------------------------- |
+| **Display** | 40 / 56 px · 600            | Marketing banners, hero titles          |
+| **Heading** | 28 / 40 px · 600            | Section headers                         |
+| **Title**   | 20 / 30 px · 600            | Modal titles, card headings             |
+| **Body**    | 16 / 28 px · 400            | Primary body copy                       |
+| **Label**   | 14 / 22 px · 500            | Form field labels, action buttons       |
+| **Caption** | 12 / 20 px · 400            | Helper text, secondary timestamps, tags |
 
 ### Font Pairing (Bilingual)
 
 **Primary Thai Font: Noto Sans Thai**
+
 - Used for all Thai script copy.
 - Displayed with proportional line-height (1.4–1.6) for optimal readability.
 
 **Secondary Latin & Numerical Font: Nunito Sans**
+
 - Used for numerical values, Latin text, pass voucher codes (`LELE-FT-XXXXX`), status labels, and financial ledger amounts.
 
 ### Geometry & Spacing (4 px Base Grid)
 
-| Unit | Value | Typical Usage |
-|---|---|---|
-| 1 | 4 px | Micro spacing, icon offsets |
-| 2 | 8 px | Tight element gaps, badge padding |
-| 3 | 12 px | Input field padding, list gap |
-| 4 | 16 px | Card inner padding, section spacing |
-| 6 | 24 px | Layout division, modal margins |
-| 8 | 32 px | Major component separation |
+| Unit | Value | Typical Usage                       |
+| ---- | ----- | ----------------------------------- |
+| 1    | 4 px  | Micro spacing, icon offsets         |
+| 2    | 8 px  | Tight element gaps, badge padding   |
+| 3    | 12 px | Input field padding, list gap       |
+| 4    | 16 px | Card inner padding, section spacing |
+| 6    | 24 px | Layout division, modal margins      |
+| 8    | 32 px | Major component separation          |
 
 ### Border Radius (Tailwind Canonical Scale)
+
 - **Extra Small (4 px)**: `rounded` — Minor inner controls, skeleton loaders.
 - **Compact (6 px)**: `rounded-md` — Sub-tab buttons, close icons.
 - **Small (8 px)**: `rounded-lg` — Status tags, chip controls, compact badges.
@@ -101,6 +106,7 @@ Clear hierarchy, legible weights, and bilingual pairing.
 Intentional, minimal design that avoids visual clutter and redundant decorations.
 
 ### 1. Unified Brand Header & Browser Identity
+
 - **Navigation Bar**: Standardized across both User (`Navbar.tsx`) and Admin:
   - Circular avatar logo (`src/app/icon.png` served at `/icon.png`, 32×32px, `rounded-full border border-[#D0DEF7] object-cover`).
   - Brand typography: `LELE' Ticket` (semi-bold) + `#เลอเล่อรับกดบัตร` in Slate (`text-xs text-[#657406]`).
@@ -110,17 +116,20 @@ Intentional, minimal design that avoids visual clutter and redundant decorations
 - **Quick X Store Action**: Circular X icon button (`36×36px`, `rounded-full border border-[#D0DEF7] bg-white`) linking dynamically to the store X profile configured in `siteConfig.ts` (`NEXT_PUBLIC_SHOP_X_HANDLE`, default: `@lele0423_ticket`) for 1-tap navigation, removing redundant links from profile dropdowns.
 
 ### 2. No Decorative Icons Policy
+
 - **Strict Rule**: Never add decorative icons or emojis (e.g. `Camera`, `CheckCircle2`, `Clock`, `XCircle`, `PlusCircle`, `Send`, `Sparkles`, `📌`) to buttons, form fields, helper banners, or status badges.
 - Rely on strong typographical contrast, intentional spacing, and curated brand colors.
 - Icons are strictly restricted to necessary navigation controls (e.g., modal dismiss `✕`, pagination chevrons) and explicit functional triggers (`MessageSquarePlus` for adding review, `RectangleEllipsis` for entering codes).
 
 ### 3. Point Ledger & Badge Typography
+
 - Point adjustments (`+1 point`, `-1 point`) must be rendered as clean, high-contrast typography (`text-sm font-bold font-latin`).
 - **User Modals & Reward Cards**: Render badges and point values as clean, unpill'd typography without candy pill background rectangles. In `RewardExchangeModal`, point costs are made prominent and legible via enlarged bold numerals (`text-base font-extrabold font-latin text-[#25384C]` for available redemptions, and `text-sm font-extrabold font-latin text-[#B01444]` for shortfall points) while keeping surrounding Thai descriptor text subtle (`text-xs text-slate-500`).
 - **User Passes Wallet**: Statuses are displayed as clean, borderless colored text (`text-[#2D7058]` for Active, `text-slate-400` for Used).
 - **Admin Tables**: Use subtle semantic pills (`text-[#956018] bg-[#FCF2D9]`, `text-[#2D7058] bg-[#EAF4EE]`, `text-[#B01444] bg-[#FBEDED]`).
 
 ### 4. Admin Data Tables & Search (`AdminDataTable` & `AdminFilterBar`)
+
 - **Unified Tabular Surface (`AdminDataTable`)**: Consistent table chassis across 100% of admin tabs (`ReviewsTab`, `PassesTab`, `PromotionsTab`, `MembersTab`) with clean borders (`border-[#D0DEF7]`), pulse loading skeleton rows, empty state messaging, subtle sorting chevrons, and built-in bottom pagination.
 - **Debounced Input**: Built-in 300ms debounce in `AdminFilterBar` to prevent constant refetching during rapid typing.
 - **Loading State**: Displays an inline animated spinner inside the search icon space during active network queries.
@@ -128,11 +137,13 @@ Intentional, minimal design that avoids visual clutter and redundant decorations
 - **No Table Flickering**: Tables maintain stable opacity during live search queries to ensure smooth visual ergonomics.
 
 ### 5. Admin Sub-Tab Navigation
+
 - Clean bracket style for clear hierarchy:
   - Passes Management: `[ คูปองรางวัล ]` & `[ ประวัติใช้โค้ดพิเศษ ]`
   - Promotion Management: `[ รายการโปรโมชั่น ]` & `[ โค้ดพิเศษ ]`
 
 ### 6. Password Security Validation (`PasswordCriteriaChecklist`)
+
 - Standardized checklist for password requirements:
   - At least 8 characters
   - At least one lowercase letter (a-z)
@@ -141,17 +152,20 @@ Intentional, minimal design that avoids visual clutter and redundant decorations
 - Dynamically highlights green (`text-[#2D7058]`) when criteria are satisfied.
 
 ### 7. Buttons (48 px Standard Touch Height)
+
 - **Primary**: Solid Booking Blue background (`bg-[#25384C]`), white text, `rounded-[12px]`, subtle shadow (`shadow-md shadow-[#25384C]/20`).
 - **Dynamic Action**: In stamp adjustment modal, confirm button dynamically switches to green (`bg-[#2D7058] hover:bg-[#235845]`) when adding points.
 - **Secondary**: White background (`bg-white`), Booking Blue text (`text-[#25384C]`), Mist border (`border border-[#D0DEF7]`), `rounded-[10px]`.
 - **States**: `hover:bg-[#1B2938]`, `active:scale-[0.99]`, `disabled:opacity-50`.
 
 ### 8. Modals & Overlays
+
 - **Backdrop**: Unified `fixed inset-0 z-50 bg-[#25384C]/60 backdrop-blur-sm`.
 - **Dismissal**: Always support clicking the backdrop to dismiss the modal and reset form state.
 - **Scrolling Behavior**: Sticky header and pagination footer with middle section scroll (`flex-1 overflow-y-auto`).
 
 ### 9. Member Tier System Tokens & Assets
+
 - **Tiers**: Bronze (0-4), Silver (5-14), Gold (15-29), Platinum (30-49), Diamond (50+).
 - **Physical Crest Assets**: Sliced transparent PNG assets in `public/tiers/`:
   - `frame_<tier>.png`: Scaled to 115×106px overlaying the 56×56px avatar circle.
@@ -167,27 +181,28 @@ Intentional, minimal design that avoids visual clutter and redundant decorations
 ## 04 Implementation Tokens
 
 ### CSS Custom Properties
+
 ```css
 :root {
   /* Brand Tokens */
-  --color-cream: #F7EBC9;
-  --color-cornflower: #5284B7;
-  --color-booking-blue: #25384C;
-  --color-ink: #25384C;
+  --color-cream: #f7ebc9;
+  --color-cornflower: #5284b7;
+  --color-booking-blue: #25384c;
+  --color-ink: #25384c;
   --color-slate: #657406;
-  --color-cloud: #FAF8F2;
-  --color-paper: #FFFFFF;
-  --color-mist: #D0DEF7;
+  --color-cloud: #faf8f2;
+  --color-paper: #ffffff;
+  --color-mist: #d0def7;
 
   /* Semantic Tokens */
-  --color-success: #2D7058;
-  --color-success-bg: #EAF4EE;
+  --color-success: #2d7058;
+  --color-success-bg: #eaf4ee;
   --color-warning: #956018;
-  --color-warning-bg: #FCF2D9;
-  --color-error: #B01444;
-  --color-error-bg: #FBEDED;
-  --color-info: #315F91;
-  --color-info-bg: #EDF3FA;
+  --color-warning-bg: #fcf2d9;
+  --color-error: #b01444;
+  --color-error-bg: #fbeded;
+  --color-info: #315f91;
+  --color-info-bg: #edf3fa;
 
   /* Radii */
   --radius-sm: 8px;
@@ -199,4 +214,4 @@ Intentional, minimal design that avoids visual clutter and redundant decorations
 
 ---
 
-*LELE' Ticket Design System v1.0 — Clean, accessible, and intentional design.*
+_LELE' Ticket Design System v1.0 — Clean, accessible, and intentional design._

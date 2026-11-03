@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
       if (isExpired) {
         canRedeem = false;
-        reasonDisabled = "สิ้นสุด";
+        reasonDisabled = "สิ้นสุดระยะเวลา";
       } else if (remainingQuota !== null && remainingQuota <= 0) {
         canRedeem = false;
         reasonDisabled = "สิทธิ์หมด";

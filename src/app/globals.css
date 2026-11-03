@@ -6,13 +6,13 @@
   --color-cornflower: #5284B7;
   --color-booking-blue: #25384C;
   --color-ink: #25384C;
-  --color-slate: #657406;
+  --color-slate: #5284B7;
   --color-cloud: #FAF8F2;
   --color-paper: #FFFFFF;
   --color-mist: #D0DEF7;
   --color-success: #2D7058;
   --color-success-bg: #EAF4EE;
-  --color-warning: #956018;
+  --color-warning: #D97706;
   --color-warning-bg: #FCF2D9;
   --color-error: #B01444;
   --color-error-bg: #FBEDED;
@@ -180,84 +180,84 @@ code,
 }
 
 @media (max-width: 640px) {
-    .Toastify__toast-container--bottom-center {
-      bottom: 20px;
-    }
+  .Toastify__toast-container--bottom-center {
+    bottom: 20px;
+  }
+}
+
+/* Smooth micro-animations */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
   }
 
-  /* Smooth micro-animations */
-  @keyframes float {
+  50% {
+    transform: translateY(-4px);
+  }
+}
 
-    0%,
-    100% {
-      transform: translateY(0);
-    }
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
 
-    50% {
-      transform: translateY(-4px);
-    }
+@keyframes pulse-subtle {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
+  50% {
+    opacity: 0.92;
+    transform: scale(1.03);
   }
+}
 
-  @keyframes pulse-subtle {
+.animate-pulse-subtle {
+  animation: pulse-subtle 2.5s ease-in-out infinite;
+}
 
-    0%,
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
+/* Hide scrollbars across the application for a clean, app-like experience */
+@utility no-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 
-    50% {
-      opacity: 0.92;
-      transform: scale(1.03);
-    }
-  }
-
-  .animate-pulse-subtle {
-    animation: pulse-subtle 2.5s ease-in-out infinite;
-  }
-
-  /* Hide scrollbars across the application for a clean, app-like experience */
-  @utility no-scrollbar {
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-
-    &::-webkit-scrollbar {
-      display: none !important;
-      width: 0px !important;
-      height: 0px !important;
-      background: transparent !important;
-    }
-  }
-
-  html,
-  body,
-  div,
-  main,
-  section,
-  * {
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-  }
-
-  ::-webkit-scrollbar,
-  *::-webkit-scrollbar {
+  &::-webkit-scrollbar {
     display: none !important;
     width: 0px !important;
     height: 0px !important;
     background: transparent !important;
   }
+}
 
-  html:has(body.modal-open),
-  body.modal-open {
-    overflow: hidden !important;
-  }
+html,
+body,
+div,
+main,
+section,
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
 
-  body.modal-open nav[aria-label="เมนูหลักด้านล่าง"] {
-    opacity: 0 !important;
-    pointer-events: none !important;
-    visibility: hidden !important;
-  }
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
+}
+
+html:has(body.modal-open),
+body.modal-open {
+  overflow: hidden !important;
+}
+
+body.modal-open nav[aria-label="เมนูหลักด้านล่าง"] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}

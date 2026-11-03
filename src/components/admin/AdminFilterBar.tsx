@@ -97,7 +97,7 @@ export default function AdminFilterBar({
         {/* Filter Dropdown */}
         {filterOptions && filterOptions.length > 0 && onFilterChange && (
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-xs font-semibold text-[#657406] hidden md:inline">
+            <span className="text-xs font-semibold text-slate-500 hidden md:inline">
               {filterLabel}:
             </span>
             <AdminSelect

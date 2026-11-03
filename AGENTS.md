@@ -11,6 +11,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 # Agent Guidelines & Engineering Standards
 
 ## 1. Core Principles & Philosophy
+
 - **Zero AI Slop**: Write minimal, clean, and intentional code. Avoid redundant abstractions, unnecessary wrappers, or dead boilerplate.
 - **No Decorative Icons (ห้ามใส่ icon)**: Do not add decorative icons or emojis (e.g. `Camera`, `CheckCircle2`, `Clock`, `XCircle`, `PlusCircle`, `Send`, `Sparkles`, `📌`) into buttons, status badges, helper banners, or form cards. Rely on strong, clean typography, intentional spacing, and curated brand colors. Icons are strictly limited to necessary navigation controls (such as modal close `✕` or pagination arrows) and functional triggers (such as `MessageSquarePlus` for adding a review).
 - **Single Source of Truth**: Centralize and reuse shared logic and UI components instead of creating duplicated variations:
@@ -27,6 +28,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ---
 
 ## 2. Codebase Conventions
+
 - **TypeScript Strictness**: Always write fully-typed interfaces and functions. Run `npx tsc --noEmit` before concluding work to guarantee zero compile errors.
 - **React Hook Order & Concurrency**:
   - Declare all React hooks (`useState`, `useEffect`, `useMemo`, `useRef`) at the absolute top of components prior to any conditional checks or early returns.
@@ -41,11 +43,12 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ---
 
 ## 3. UI & Design System Rules
+
 - **Brand Tokens (DESIGN.md)**:
   - Canvas background: `#FAF8F2`
   - Cards & Surfaces: `#FFFFFF` with `#D0DEF7` borders
   - Primary text and actions: `#25384C` (hover: `#1B2938`)
-  - Accent / secondary text: `#657406`
+  - Accent / secondary text: `#5284B7` (Cornflower) / Pending warning: `#D97706` (Warm Amber)
   - Links: `#315F91`
 - **Modals & Overlays**:
   - Backdrop must strictly use `fixed inset-0 z-50 bg-[#25384C]/60 backdrop-blur-sm` across all components.

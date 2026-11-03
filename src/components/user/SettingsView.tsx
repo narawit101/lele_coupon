@@ -20,13 +20,14 @@ interface SettingsViewProps {
   onRequestLogout: () => void;
 }
 
-const TIER_THRESHOLDS: { name: MemberTier; points: string; isMax?: boolean }[] = [
-  { name: "BRONZE", points: "0 แต้ม" },
-  { name: "SILVER", points: "10 แต้ม" },
-  { name: "GOLD", points: "25 แต้ม" },
-  { name: "PLATINUM", points: "50 แต้ม" },
-  { name: "DIAMOND", points: "100 แต้ม", isMax: true },
-];
+const TIER_THRESHOLDS: { name: MemberTier; points: string; isMax?: boolean }[] =
+  [
+    { name: "BRONZE", points: "0 แต้ม" },
+    { name: "SILVER", points: "10 แต้ม" },
+    { name: "GOLD", points: "25 แต้ม" },
+    { name: "PLATINUM", points: "50 แต้ม" },
+    { name: "DIAMOND", points: "100 แต้ม", isMax: true },
+  ];
 
 export default function SettingsView({
   user,
@@ -189,21 +190,13 @@ export default function SettingsView({
 
           <div className="p-3 rounded-xl bg-[#FAF8F2] border border-[#D0DEF7] space-y-1">
             <p className="font-bold text-xs text-[#25384C]">
-              3. การแลกและใช้สิทธิ์ลัดคิว
+              3. การแลกและใช้สิทธิ์
             </p>
             <p className="text-xs text-slate-600 leading-relaxed">
               นำแต้มสะสมมาแลกคูปองสิทธิ์ลัดคิวในแท็บ &ldquo;คูปองของฉัน&rdquo;
               และแจ้งรหัสคูปองกับแอดมินทาง DM เมื่อต้องการจองคิวงานคอนเสิร์ต
             </p>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setShowRulesModal(false)}
-            className="w-full min-h-10 px-4 py-2.5 bg-[#25384C] hover:bg-[#1B2938] text-white font-semibold text-xs rounded-xl shadow-2xs transition-all active:scale-[0.99] cursor-pointer mt-1"
-          >
-            เข้าใจแล้ว
-          </button>
         </div>
       </BaseModal>
 

@@ -260,7 +260,7 @@ export default function CardDetailModal({
                     <span className="font-latin text-2xl sm:text-3xl font-extrabold text-[#25384C]">
                       {user.stamps.toLocaleString()}
                     </span>
-                    <span className="text-[11px] sm:text-xs font-semibold text-[#657406]">
+                    <span className="text-[11px] sm:text-xs font-semibold text-[#5284B7]">
                       แต้ม
                     </span>
                   </div>
@@ -273,7 +273,7 @@ export default function CardDetailModal({
                     <span className="font-latin text-2xl sm:text-3xl font-extrabold ">
                       {(user.lifetimeStamps ?? user.stamps).toLocaleString()}
                     </span>
-                    <span className="text-[11px] sm:text-xs font-semibold text-[#657406]">
+                    <span className="text-[11px] sm:text-xs font-semibold text-[#5284B7]">
                       แต้ม
                     </span>
                   </div>

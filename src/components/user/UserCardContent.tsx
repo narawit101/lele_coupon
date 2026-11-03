@@ -146,7 +146,7 @@ export default function UserCardContent({
                 <span className="font-latin text-2xl sm:text-3xl font-extrabold text-[#25384C] leading-none">
                   {user.stamps.toLocaleString()}
                 </span>
-                <span className="text-[11px] sm:text-xs font-semibold text-[#657406]">
+                <span className="text-[11px] sm:text-xs font-semibold text-[#5284B7]">
                   แต้ม
                 </span>
               </div>

@@ -166,7 +166,7 @@ export default function PassesTab({
       className: "whitespace-nowrap",
       render: (p) =>
         p.status === "ACTIVE" ? (
-          <span className="text-xs font-semibold text-[#657406]">
+          <span className="text-xs font-semibold text-[#D97706]">
             รอยืนยันสิทธิ์
           </span>
         ) : (

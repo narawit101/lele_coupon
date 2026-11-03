@@ -88,6 +88,16 @@ export default function HomePage() {
     },
   });
 
+  const handleTabChange = (newTab: UserNavTab) => {
+    if (newTab === activeTab) return;
+    setActiveTab(newTab);
+    if (newTab === "HOME") {
+      handleCategoryChange("ALL");
+    } else if (newTab === "WALLET") {
+      handlePassStatusChange("ALL");
+    }
+  };
+
   // Pull-to-refresh or manual refresh handler
   const handleRefresh = async () => {
     if (isRefreshing) return;
@@ -249,7 +259,7 @@ export default function HomePage() {
       {/* Bottom Navigation Dock */}
       <BottomNav
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         activePassCount={passCounts.active}
       />
 

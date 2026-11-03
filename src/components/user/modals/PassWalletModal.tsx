@@ -55,6 +55,13 @@ export default function PassWalletModal({
     passListRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleClose = () => {
+    if (status !== "ALL") {
+      onStatusChange("ALL");
+    }
+    onClose();
+  };
+
   const modalHeader = (
     <div className="p-5 pb-3 border-b border-[#D0DEF7] shrink-0 bg-white">
       <div className="flex items-center justify-between pb-3 border-b border-[#D0DEF7]">
@@ -63,7 +70,7 @@ export default function PassWalletModal({
         </h3>
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleClose}
           className="p-1 rounded-lg text-slate-400 hover:text-[#25384C] hover:bg-[#FAF8F2] transition cursor-pointer"
         >
           <X className="w-4 h-4" />
@@ -145,7 +152,7 @@ export default function PassWalletModal({
   return (
     <BaseModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       header={modalHeader}
       footer={modalFooter}
       maxWidth="max-w-md"

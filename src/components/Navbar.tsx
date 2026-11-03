@@ -48,7 +48,7 @@ export default function Navbar({
                 {subtitle}
               </p>
             ) : (
-              <div className="text-xs text-[#657406] leading-tight mt-0.5 truncate">
+              <div className="text-xs text-[#5284B7] leading-tight mt-0.5 truncate">
                 {subtitle}
               </div>
             )}

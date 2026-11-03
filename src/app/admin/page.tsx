@@ -90,6 +90,38 @@ export default function AdminDashboard() {
     onRefreshAll: handleRefreshAll,
   });
 
+  const handleTabSwitch = (newTab: AdminTab) => {
+    if (newTab === activeTab) return;
+    setActiveTab(newTab);
+
+    if (newTab === "REVIEWS") {
+      reviewsHook.setReviewsStatus("ALL");
+      reviewsHook.setReviewsSearch("");
+      reviewsHook.setReviewsPage(1);
+    } else if (newTab === "PROMOTIONS") {
+      promotionsHook.setPromotionsSubTab("PROMOTIONS");
+      promotionsHook.setPromotionsSearch("");
+      promotionsHook.setPromotionsStatus("ALL");
+      promotionsHook.setPromotionsPage(1);
+      promotionsHook.setCodesSearch("");
+      promotionsHook.setCodesStatus("ALL");
+      promotionsHook.setCodesPage(1);
+    } else if (newTab === "PASSES") {
+      passesHook.setPassesSubTab("PASSES");
+      passesHook.setPassesSearch("");
+      passesHook.setPassesStatus("ALL");
+      passesHook.setPassesPage(1);
+      passesHook.setRedemptionsSearch("");
+      passesHook.setRedemptionsFilter("ALL");
+      passesHook.setRedemptionsPage(1);
+    } else if (newTab === "MEMBERS") {
+      membersHook.setMembersSubTab("CUSTOMERS");
+      membersHook.setMembersSearch("");
+      membersHook.setMembersTierFilter("ALL");
+      membersHook.setMembersPage(1);
+    }
+  };
+
   // Auth checking state
   if (auth.authChecking) {
     return (
@@ -220,7 +252,7 @@ export default function AdminDashboard() {
             return (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => handleTabSwitch(tab.key)}
                 className={`px-3 py-2 sm:px-4 sm:py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-xs ${
                   isActive
                     ? "bg-[#25384C] text-white shadow-sm"
@@ -269,7 +301,16 @@ export default function AdminDashboard() {
             promotionsSubTab={promotionsHook.promotionsSubTab}
             onSubTabChange={(tab) => {
               promotionsHook.setPromotionsSubTab(tab);
-              if (tab === "SPECIAL_CODES") promotionsHook.fetchSpecialCodes();
+              if (tab === "SPECIAL_CODES") {
+                promotionsHook.setCodesSearch("");
+                promotionsHook.setCodesStatus("ALL");
+                promotionsHook.setCodesPage(1);
+                promotionsHook.fetchSpecialCodes();
+              } else {
+                promotionsHook.setPromotionsSearch("");
+                promotionsHook.setPromotionsStatus("ALL");
+                promotionsHook.setPromotionsPage(1);
+              }
             }}
             promotions={promotionsHook.promotions}
             promotionsTotal={promotionsHook.promotionsTotal}
@@ -360,7 +401,16 @@ export default function AdminDashboard() {
             passesSubTab={passesHook.passesSubTab}
             onSubTabChange={(tab) => {
               passesHook.setPassesSubTab(tab);
-              if (tab === "REDEMPTION_LOGS") passesHook.fetchCodeRedemptions();
+              if (tab === "REDEMPTION_LOGS") {
+                passesHook.setRedemptionsSearch("");
+                passesHook.setRedemptionsFilter("ALL");
+                passesHook.setRedemptionsPage(1);
+                passesHook.fetchCodeRedemptions();
+              } else {
+                passesHook.setPassesSearch("");
+                passesHook.setPassesStatus("ALL");
+                passesHook.setPassesPage(1);
+              }
             }}
             passes={passesHook.passes}
             passesTotal={passesHook.passesTotal}
@@ -415,7 +465,12 @@ export default function AdminDashboard() {
             membersTotalPages={membersHook.membersTotalPages}
             membersSearch={membersHook.membersSearch}
             membersSubTab={membersHook.membersSubTab}
-            onSubTabChange={membersHook.setMembersSubTab}
+            onSubTabChange={(subTab) => {
+              membersHook.setMembersSubTab(subTab);
+              membersHook.setMembersSearch("");
+              membersHook.setMembersTierFilter("ALL");
+              membersHook.setMembersPage(1);
+            }}
             customersTotal={membersHook.customersTotal}
             adminsTotal={membersHook.adminsTotal}
             membersSortBy={membersHook.membersSortBy}

@@ -43,7 +43,7 @@ export default function AdminLoginForm({
         <h1 className="text-xl font-bold text-center text-[#25384C]">
           LELE&apos; Admin Backoffice
         </h1>
-        <p className="text-xs text-center text-[#657406] mt-1">
+        <p className="text-xs text-center text-slate-500 mt-1">
           ระบบจัดการคูปอง
         </p>
 

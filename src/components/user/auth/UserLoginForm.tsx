@@ -40,7 +40,7 @@ export default function UserLoginForm({
         <p className="text-sm font-semibold text-[#5284B7]">
           #เลอเล่อรับกดบัตร
         </p>
-        <p className="mt-3 text-base leading-7 text-[#657406]">
+        <p className="mt-3 text-base leading-7 text-slate-500">
           เข้าสู่ระบบด้วย LINE เพื่อดูบัตรสมาชิกและสะสมแต้ม
         </p>
       </div>

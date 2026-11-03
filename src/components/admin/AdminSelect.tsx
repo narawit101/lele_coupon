@@ -1,7 +1,16 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useSyncExternalStore,
+} from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, Check } from "lucide-react";
+
+const emptySubscribe = () => () => {};
 
 export interface AdminSelectOption<T extends string = string> {
   value: T;
@@ -32,17 +41,77 @@ export default function AdminSelect<T extends string = string>({
   menuClassName = "",
   ariaLabel,
 }: AdminSelectProps<T>) {
+  const isMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuPosition, setMenuPosition] = useState<React.CSSProperties>({});
+
+  const updatePosition = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const estimatedHeight = Math.min(options.length * 38 + 16, 260);
+
+    const openUpwards = spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
+
+    if (openUpwards) {
+      setMenuPosition({
+        position: "fixed",
+        left: `${rect.left}px`,
+        width: `${rect.width}px`,
+        bottom: `${window.innerHeight - rect.top + 4}px`,
+        maxHeight: `${Math.min(spaceAbove - 16, 260)}px`,
+        zIndex: 9999,
+      });
+    } else {
+      setMenuPosition({
+        position: "fixed",
+        left: `${rect.left}px`,
+        width: `${rect.width}px`,
+        top: `${rect.bottom + 4}px`,
+        maxHeight: `${Math.min(spaceBelow - 16, 260)}px`,
+        zIndex: 9999,
+      });
+    }
+  }, [options.length]);
+
+  // Keep menu position synced with trigger element on scroll / resize
+  useEffect(() => {
+    if (!isOpen) return;
+
+    updatePosition();
+
+    const handleScrollOrResize = () => {
+      updatePosition();
+    };
+
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
+
+    return () => {
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
+    };
+  }, [isOpen, updatePosition]);
 
   // Close when clicking outside
   useEffect(() => {
     if (!isOpen) return;
 
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node;
       if (
         containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
+        !containerRef.current.contains(target) &&
+        menuRef.current &&
+        !menuRef.current.contains(target)
       ) {
         setIsOpen(false);
       }
@@ -124,47 +193,52 @@ export default function AdminSelect<T extends string = string>({
         />
       </button>
 
-      {/* Dropdown Menu Popover */}
-      {isOpen && (
-        <div
-          role="listbox"
-          tabIndex={-1}
-          className={`absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-y-auto rounded-xl bg-white border border-[#D0DEF7] shadow-lg py-1 outline-none animate-in fade-in zoom-in-95 duration-100 ${menuClassName}`}
-        >
-          {options.map((opt) => {
-            const isSelected = opt.value === value;
-            return (
-              <div
-                key={opt.value}
-                role="option"
-                aria-selected={isSelected}
-                onClick={() => {
-                  onChange(opt.value);
-                  setIsOpen(false);
-                }}
-                className={`w-full px-3 py-2 text-xs flex items-center justify-between gap-2 cursor-pointer transition select-none ${
-                  isSelected
-                    ? "bg-[#FAF8F2] text-[#25384C] font-bold"
-                    : "text-[#25384C] hover:bg-[#FAF8F2]/80 font-medium"
-                }`}
-              >
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  {opt.icon && (
-                    <span className="shrink-0 flex items-center justify-center">
-                      {opt.icon}
-                    </span>
+      {/* Dropdown Menu Popover (Portaled to document.body so it is never clipped by modal overflow) */}
+      {isOpen &&
+        isMounted &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="listbox"
+            tabIndex={-1}
+            style={menuPosition}
+            className={`overflow-y-auto rounded-xl bg-white border border-[#D0DEF7] shadow-xl py-1 outline-none animate-in fade-in zoom-in-95 duration-100 ${menuClassName}`}
+          >
+            {options.map((opt) => {
+              const isSelected = opt.value === value;
+              return (
+                <div
+                  key={opt.value}
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={() => {
+                    onChange(opt.value);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full px-3 py-2 text-xs flex items-center justify-between gap-2 cursor-pointer transition select-none ${
+                    isSelected
+                      ? "bg-[#FAF8F2] text-[#25384C] font-bold"
+                      : "text-[#25384C] hover:bg-[#FAF8F2]/80 font-medium"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    {opt.icon && (
+                      <span className="shrink-0 flex items-center justify-center">
+                        {opt.icon}
+                      </span>
+                    )}
+                    <span className="truncate">{opt.label}</span>
+                    {opt.badge && <span className="shrink-0">{opt.badge}</span>}
+                  </div>
+                  {isSelected && (
+                    <Check className="w-3.5 h-3.5 text-[#315F91] shrink-0" />
                   )}
-                  <span className="truncate">{opt.label}</span>
-                  {opt.badge && <span className="shrink-0">{opt.badge}</span>}
                 </div>
-                {isSelected && (
-                  <Check className="w-3.5 h-3.5 text-[#315F91] shrink-0" />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
